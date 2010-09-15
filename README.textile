@@ -1,3 +1,6 @@
 h1. ElasticSearch Javascript Client
 
 This project is in its infancy age. Once developed a bit more it should provide Javascript client for ElasticSearch supporting jQuery and node.js clients.
+
+Curious how this client can be used?
+See demo.html and mainly demo.js files in demo folder.
