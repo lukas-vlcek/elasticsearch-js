@@ -37,5 +37,6 @@ function demo() {
     es.clusterState();
     es.clusterHealth({indices:["java-user","dev"], timeout:"30s"});
 
-    es.search({indices:["_all"], types:["mail"], query:{ size: 1, from: 0, query: { match_all: {}} }})
+    es.search({indices:["_all"], types:["mail"], queryDSL:{ size: 1, from: 0, query: { match_all: {}} }})
+    es.count({queryDSL:{ match_all: {}} })
 };

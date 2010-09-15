@@ -26,7 +26,7 @@ ElasticSearch.prototype.executeInternal = function(self, path, options, callback
     var request = {
         type: options.method.toUpperCase(),
         url: path,
-        data: options.stringifyQuery,
+        data: options.stringifyData,
         processData: false,
         dataType: "json",
         success: function(data, statusText, xhr) {

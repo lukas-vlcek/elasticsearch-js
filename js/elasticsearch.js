@@ -57,7 +57,17 @@ ElasticSearch.prototype.search = function(settings) {
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     (settings = this.ensure(settings)).path = path;
     settings.method = "POST";
-    if (settings.query) settings.stringifyQuery = JSON.stringify(settings.query);
+    if (settings.queryDSL) settings.stringifyData = JSON.stringify(settings.queryDSL);
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.count = function(settings) {
+    var path = "_count";
+    if (settings.types) path = settings.types + "/" + path;
+    path = (settings.indices ? settings.indices : "_all") + "/"+ path;
+    (settings = this.ensure(settings)).path = path;
+    settings.method = "POST";
+    if (settings.queryDSL) settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute(settings);
 }
 
