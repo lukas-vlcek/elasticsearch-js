@@ -14,29 +14,46 @@
 
 $(document).ready(function()
 {
-    $("#start").bind("click",function(){demo()});
+    populateMethods();
+    output = $("#output");
 });
 
-function demo() {
+var methods = [];
+methods.push(["log","Logging message"]);
+methods.push(["search",{indices:["_all"], types:["mail"], queryDSL:{ size: 1, from: 0, query: { match_all: {}} }}]);
+methods.push(["count",{queryDSL:{ match_all: {}} }]);
+methods.push(["clusterState",{}]);
+methods.push(["clusterHealth",{indices:["java-user","dev"], timeout:"30s"}]);
+methods.push(["clusterNodesInfo",{}]);
+methods.push(["clusterNodesStats",{}]);
 
-    var output = $("#output");
-    output.empty();
-
-    // If your browser supports console then you should not see any logging messages in it.
-    var es = new ElasticSearch();
-    es.log("By default logging is turned off");
-
-    // If you browser supports console then you should see logging messages in it now.
-    es = new ElasticSearch({
-        debug: true,
-        callback : function(data, xhr) { es.log(data); output.append("<p>"+JSON.stringify(data, null, '  '))+"</p>"}
+function populateMethods() {
+    var methodList = $("#methods");
+    $.each(methods, function(idx, method){
+        var i = li();
+        var t = input(JSON.stringify(method[1]));
+        var b = button("Run");
+        b.bind("click",function(){
+            var p = {};
+            if (t.val()) p = JSON.parse(t.val());
+            getES()[method[0]](p);
+        });
+        $(i).append(method[0],t,b);
+        methodList.append(i);
     });
+}
 
-    es.log("Test logging message");
+function getES() {
+    var es = new ElasticSearch(
+        {
+            debug: $("#logging").attr("checked"),
+            host: $("#host").val(),
+            port: $("#port").val()
+        });
+    es.defaults.callback = function(data, xhr) { es.log(data); output.empty().append("<p>"+JSON.stringify(data, null, '  '))+"</p>"};
+    return es;
+}
 
-    es.clusterState();
-    es.clusterHealth({indices:["java-user","dev"], timeout:"30s"});
-
-    es.search({indices:["_all"], types:["mail"], queryDSL:{ size: 1, from: 0, query: { match_all: {}} }})
-    es.count({queryDSL:{ match_all: {}} })
-};
+function li() {return document.createElement("li");}
+function input(value) {return $(document.createElement("input")).attr("type","text").attr("size","70").attr("value",value);}
+function button(value) {return $(document.createElement("input")).attr("type","button").attr("value",value);}

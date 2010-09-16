@@ -26,9 +26,26 @@
 </head>
 <body>
     <h3>ElasticSearch-js jQuery Client Demo</h3>
-    This demo requires ElasticSearch node to be running on <code>localhost:9200</code> and it assumes specific indices are available.<br>
-    See <a href="demo.js">demo</a> javascript source code for details.<br><br>
-    <form action="#"><input type="button" id="start" value="Start the demo!"></form>
-    <div  style="border: 1pt solid #008000; width: 100%; height: 300px; overflow: auto"><pre id="output"></pre></div>
+    See <a href="demo.js">demo</a> javascript source code for details.
+    <form action="">
+        Connect to ElasticSearch node running on <input id="host" type="text" size="13" value="localhost">:<input id="port" type="text" size="4" maxlength="4" value="9200">
+        (<input id="logging" type="checkbox" checked> logging into browser console)
+    </form>
+    
+    <div>
+    <table>
+        <tr>
+            <td style="white-space: nowrap; vertical-align: top;">
+                Some methods:
+                <ul id="methods"></ul>
+            </td>
+            <td width="100%" style="vertical-align: top">
+                XHR output:
+                <div  style="border: 1pt solid #008000; width: 100%; height: 400px; overflow: auto"><pre id="output"></pre></div>
+            </td>
+        </tr>
+    </table>
+        </div>
+
 </body>
 </html>
