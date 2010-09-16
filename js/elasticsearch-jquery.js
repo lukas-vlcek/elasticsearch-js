@@ -22,7 +22,7 @@ ElasticSearch.prototype.log = function(message, error) {
     }
 }
 
-ElasticSearch.prototype.executeInternal = function(self, path, options, callback) {
+ElasticSearch.prototype.executeInternal = function(path, options, callback) {
     var request = {
         type: options.method.toUpperCase(),
         url: path,
@@ -36,7 +36,7 @@ ElasticSearch.prototype.executeInternal = function(self, path, options, callback
             callback(message, xhr, error);
         }
     };
-    self.client.ajax(request);
+    this.client.ajax(request);
 }
 
 ElasticSearch.prototype.mixin = $.extend

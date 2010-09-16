@@ -100,10 +100,9 @@ ElasticSearch.prototype.ensure = function(obj) {
 
 ElasticSearch.prototype.execute = function (options) {
     options = this.ensure(options);
-    var self = this;
-    var url = "http://" + (options.host || self.defaults.host) + ":" + (options.port || self.defaults.port) + "/" + options.path;
-    this.log((options.method ? options.method : self.defaults.method) + ": " + url);
-    var callback = options.callback || self.defaults.callback;
-    options.method = options.method || self.defaults.method;
-    ElasticSearch.prototype.executeInternal(self, url, options, callback);
+    var url = "http://" + (options.host || this.defaults.host) + ":" + (options.port || this.defaults.port) + "/" + options.path;
+    var callback = options.callback || this.defaults.callback;
+    options.method = options.method || this.defaults.method;
+    this.log(options.method + ": " + url);
+    ElasticSearch.prototype.executeInternal.call(this, url, options, callback);
 }
