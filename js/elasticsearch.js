@@ -64,11 +64,23 @@ ElasticSearch.prototype.clusterNodesStats = function(settings) {
     this.execute(settings);
 }
 
-//ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
-//}
-//
-//ElasticSearch.prototype.clusterNodesRestart = function(settings) {
-//}
+ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
+    var path = "_cluster/nodes";
+    path += "/"+ (settings.nodes || "_all") + "/_shutdown";
+    if (settings.delay) path += "?delay=" + settings.delay;
+    (settings = this.ensure(settings)).path = path;
+    settings.method = "POST";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.clusterNodesRestart = function(settings) {
+    var path = "_cluster/nodes";
+    path += "/"+ (settings.nodes || "_all") + "/_restart";
+    if (settings.delay) path += "?delay=" + settings.delay;
+    (settings = this.ensure(settings)).path = path;
+    settings.method = "POST";
+    this.execute(settings);
+}
 
 /* Search API using Query DSL */
 

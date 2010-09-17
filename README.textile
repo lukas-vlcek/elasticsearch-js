@@ -1,6 +1,23 @@
 h1. ElasticSearch Javascript Client
 
-This project is in its infancy age. Once developed a bit more it should provide Javascript client for ElasticSearch supporting jQuery and node.js clients.
+_Note: This project is in its infancy age. Once developed a bit more it will provide Javascript client for ElasticSearch supporting jQuery and node.js clients._
 
-Curious how this client can be used?
-See demo.html and mainly demo.js files in demo folder.
+h2. Example
+
+<pre>
+<code>
+    <script type="text/javascript" src="libs/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="libs/json2.js"></script>
+    <script type="text/javascript" src="../js/elasticsearch.js"></script>
+    <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
+
+    var es = new ElasticSearch({ debug:"true", host:"localhost", port:"9200"});
+    es.defaults.callback = function(data, xhr) { es.log(data)};
+    
+    es.clusterHealth({ indices:["_all"], level:"shards", timeout:"30s"});
+</code>
+</pre>
+
+If the browser has a @console@ object then the above example will log cluster health JSON response.
+
+For more complex example check "demo.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.js.

@@ -24,8 +24,10 @@ methods.push(["search",{indices:["_all"], types:["mail"], queryDSL:{ size: 1, fr
 methods.push(["count",{queryDSL:{ match_all: {}} }]);
 methods.push(["clusterState",{}]);
 methods.push(["clusterHealth",{indices:["java-user","dev"], timeout:"30s"}]);
-methods.push(["clusterNodesInfo",{}]);
-methods.push(["clusterNodesStats",{}]);
+methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
+methods.push(["clusterNodesStats",{nodes:["_local"]}]);
+methods.push(["clusterNodesShutdown",{"nodes":["_local"], "delay":"5s"}]);
+methods.push(["clusterNodesRestart",{nodes:["_local"]}]);
 
 function populateMethods() {
     var methodList = $("#methods");
