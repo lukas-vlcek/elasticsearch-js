@@ -8,8 +8,8 @@ h2. Example
 <code>
     <script type="text/javascript" src="libs/jquery-1.4.2.min.js"></script>
     <script type="text/javascript" src="libs/json2.js"></script>
-    <script type="text/javascript" src="../js/elasticsearch.js"></script>
-    <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
+    <script type="text/javascript" src="elasticsearch.js"></script>
+    <script type="text/javascript" src="elasticsearch-jquery.js"></script>
 
     var es = new ElasticSearch({ debug:"true", host:"localhost", port:"9200"});
     es.defaults.callback = function(data, xhr) { es.log(data)};
