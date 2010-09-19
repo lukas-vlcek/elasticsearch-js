@@ -32,6 +32,11 @@ methods.push(["indicesStatus",{}]);
 methods.push(["createIndex",{index:"test"}]);
 methods.push(["deleteIndex",{index:"test"}]);
 methods.push(["getMappings",{indices:"dev"}]);
+methods.push(["flushIndices",{indices:"dev", refresh:"true"}]);
+methods.push(["refreshIndices",{indices:"dev"}]);
+methods.push(["indicesSnapshot",{}]);
+methods.push(["optimizeIndices",{refresh:"true", flush:"true"}]);
+methods.push(["updateIndicesSettings",{number_of_replicas:4}]);
 
 function populateMethods() {
     var methodList = $("#methods");

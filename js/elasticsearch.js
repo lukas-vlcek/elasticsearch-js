@@ -137,6 +137,65 @@ ElasticSearch.prototype.getMappings = function(settings) {
     this.execute(settings);
 }
 
+ElasticSearch.prototype.flushIndices = function(settings) {
+    settings = this.ensure(settings);
+    var path = (settings.indices || "_all") + "/_flush";
+    if (settings.refresh && settings.refresh == "true") path += "?refresh=true";
+    settings.path = path;
+    settings.method = "POST";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.refreshIndices = function(settings) {
+    settings = this.ensure(settings);
+    var path = (settings.indices || "_all") + "/_refresh";
+    settings.path = path;
+    settings.method = "POST";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.indicesSnapshot = function(settings) {
+    settings = this.ensure(settings);
+    var path = (settings.indices || "_all") + "/_gateway/snapshot";
+    settings.path = path;
+    settings.method = "POST";
+    this.execute(settings);
+}
+
+//ElasticSearch.prototype.putMappings = function(settings) {
+//}
+//
+//ElasticSearch.prototype.aliases = function(settings) {
+//}
+
+ElasticSearch.prototype.updateIndicesSettings = function(settings) {
+    settings = this.ensure(settings);
+    if (settings.number_of_replicas) {
+        var path = (settings.indices || "_all") + "/_settings";
+        var index = {
+            number_of_replicas : settings.number_of_replicas
+        };
+        settings.stringifyData = JSON.stringify({"index":index});
+        settings.path = path;
+        settings.method = "PUT";
+        this.execute(settings);
+    }
+}
+
+ElasticSearch.prototype.optimizeIndices = function(settings) {
+    settings = this.ensure(settings);
+    var path = (settings.indices || "_all") + "/_optimize";
+    param = []
+    if (settings.max_num_segments) param.push("max_num_segments="+settings.max_num_segments);
+    if (settings.only_expunge_deletes) param.push("only_expunge_deletes="+settings.only_expunge_deletes);
+    if (settings.refresh) param.push("refresh="+settings.refresh);
+    if (settings.flush) param.push("flush="+settings.flush);
+    path += "?"+param.join("&");
+    settings.path = path;
+    settings.method = "POST";
+    this.execute(settings);
+}
+
 /* Search API using Query DSL */
 
 ElasticSearch.prototype.search = function(settings) {
