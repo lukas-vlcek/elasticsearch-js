@@ -105,7 +105,7 @@ ElasticSearch.prototype.indicesStatus = function(settings) {
 
 ElasticSearch.prototype.createIndex = function(settings) {
     settings = this.ensure(settings);
-    // TODO rise error if index name not set
+    if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
     this.log(path)
     var index = {
@@ -120,7 +120,7 @@ ElasticSearch.prototype.createIndex = function(settings) {
 
 ElasticSearch.prototype.deleteIndex = function(settings) {
     settings = this.ensure(settings);
-    // TODO rise error if index name not set
+    if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
     settings.path = path;
     settings.method = "DELETE";
@@ -140,7 +140,7 @@ ElasticSearch.prototype.getMappings = function(settings) {
 ElasticSearch.prototype.flushIndices = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_flush";
-    if (settings.refresh && settings.refresh == "true") path += "?refresh=true";
+    if (settings.refresh && settings.refresh === "true") path += "?refresh=true";
     settings.path = path;
     settings.method = "POST";
     this.execute(settings);
@@ -221,9 +221,8 @@ ElasticSearch.prototype.count = function(settings) {
 }
 
 ElasticSearch.prototype.get = function(settings) {
-    if ((settings == "undefined") || !(settings.index && settings.type && settings.id)) {
-        // TODO error
-        this.log("error");
+    if ((settings === "undefined") || !(settings.index && settings.type && settings.id)) {
+        throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
     if (settings.fields) settings.path += "?fields="+settings.fields
@@ -232,9 +231,8 @@ ElasticSearch.prototype.get = function(settings) {
 }
 
 ElasticSearch.prototype.del = function(settings) {
-    if ((settings == "undefined") || !(settings.index && settings.type && settings.id)) {
-        // TODO error
-        this.log("error");
+    if ((settings === "undefined") || !(settings.index && settings.type && settings.id)) {
+        throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
     if (settings.replication) settings.path += "?replication="+settings.replication
