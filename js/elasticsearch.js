@@ -220,6 +220,33 @@ ElasticSearch.prototype.count = function(settings) {
     this.execute(settings);
 }
 
+ElasticSearch.prototype.get = function(settings) {
+    if ((settings == "undefined") || !(settings.index && settings.type && settings.id)) {
+        // TODO error
+        this.log("error");
+    }
+    settings.path = [settings.index, settings.type, settings.id].join("/");
+    if (settings.fields) settings.path += "?fields="+settings.fields
+    settings.method = "GET";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.del = function(settings) {
+    if ((settings == "undefined") || !(settings.index && settings.type && settings.id)) {
+        // TODO error
+        this.log("error");
+    }
+    settings.path = [settings.index, settings.type, settings.id].join("/");
+    if (settings.replication) settings.path += "?replication="+settings.replication
+    settings.method = "DELETE";
+    this.execute(settings);
+}
+
+//ElasticSearch.prototype.delByQuery = function(settings) {
+//}
+//ElasticSearch.prototype.index = function(settings) {
+//}
+
 /* Internal helper methods */
 
 ElasticSearch.prototype.ensure = function(obj) {

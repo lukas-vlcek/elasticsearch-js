@@ -22,6 +22,8 @@ var methods = [];
 methods.push(["log","Logging message"]);
 methods.push(["search",{indices:["_all"], types:["mail"], queryDSL:{ size: 1, from: 0, query: { match_all: {}} }}]);
 methods.push(["count",{queryDSL:{ match_all: {}} }]);
+methods.push(["get",{index:"test",type:"tweet",id:1}]);
+methods.push(["del",{index:"test",type:"tweet",id:1,replication:"sync"}]);
 methods.push(["clusterState",{}]);
 methods.push(["clusterHealth",{indices:["java-user","dev"], timeout:"30s"}]);
 methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
