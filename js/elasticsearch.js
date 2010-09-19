@@ -18,6 +18,8 @@ var ElasticSearch = function(settings) {
 }
 
 ElasticSearch.prototype.defaults = {
+    number_of_shards : 3,
+    number_of_replicas : 2,
     method: 'GET',
     debug: false,
     host: "localhost",
@@ -32,10 +34,12 @@ ElasticSearch.prototype.defaults = {
 
 ElasticSearch.prototype.clusterState = function(settings) {
     (settings = this.ensure(settings)).path = "_cluster/state";
+    settings.method = "GET";
     this.execute(settings);
 }
 
 ElasticSearch.prototype.clusterHealth = function(settings) {
+    settings = this.ensure(settings);
     var path = "_cluster/health";
     var params = [];
     if (settings.indices) path += "/"+settings.indices;
@@ -45,60 +49,113 @@ ElasticSearch.prototype.clusterHealth = function(settings) {
     if (settings.wait_for_nodes) params.push("wait_for_nodes="+settings.wait_for_nodes);
     if (settings.timeout) params.push("timeout="+settings.timeout);
     if (params.length > 0) path += "?" + params.join("&");
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
+    settings.method = "GET";
     this.execute(settings);
 }
 
 ElasticSearch.prototype.clusterNodesInfo = function(settings) {
+    settings = this.ensure(settings)
     var path = "_cluster/nodes";
     if (settings.nodes) path += "/"+settings.nodes;
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
+    settings.method = "GET";
     this.execute(settings);
 }
 
 ElasticSearch.prototype.clusterNodesStats = function(settings) {
+    settings = this.ensure(settings)
     var path = "_cluster/nodes";
     if (settings.nodes) path += "/"+settings.nodes;
     path += "/stats";
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
+    settings.method = "GET";
     this.execute(settings);
 }
 
 ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
+    settings = this.ensure(settings)
     var path = "_cluster/nodes";
     path += "/"+ (settings.nodes || "_all") + "/_shutdown";
     if (settings.delay) path += "?delay=" + settings.delay;
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
     settings.method = "POST";
     this.execute(settings);
 }
 
 ElasticSearch.prototype.clusterNodesRestart = function(settings) {
+    settings = this.ensure(settings)
     var path = "_cluster/nodes";
     path += "/"+ (settings.nodes || "_all") + "/_restart";
     if (settings.delay) path += "?delay=" + settings.delay;
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
     settings.method = "POST";
+    this.execute(settings);
+}
+
+/* Index Admin API */
+
+ElasticSearch.prototype.indicesStatus = function(settings) {
+    settings = this.ensure(settings);
+    var path = (settings.indices || "_all") + "/_status";
+    settings.path = path;
+    settings.method = "GET";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.createIndex = function(settings) {
+    settings = this.ensure(settings);
+    // TODO rise error if index name not set
+    var path = settings.index+"/";
+    this.log(path)
+    var index = {
+        number_of_shards : settings.number_of_shards || this.defaults.number_of_shards,
+        number_of_replicas : settings.number_of_replicas || this.defaults.number_of_replicas
+    };
+    settings.stringifyData = JSON.stringify({"index":index});
+    settings.path = path;
+    settings.method = "PUT";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.deleteIndex = function(settings) {
+    settings = this.ensure(settings);
+    // TODO rise error if index name not set
+    var path = settings.index+"/";
+    settings.path = path;
+    settings.method = "DELETE";
+    this.execute(settings);
+}
+
+ElasticSearch.prototype.getMappings = function(settings) {
+    settings = this.ensure(settings);
+    var path = (settings.indices || "_all") + "/";
+    if (settings.types) path += settings.types + "/";
+    path += "_mapping";
+    settings.path = path;
+    settings.method = "GET";
     this.execute(settings);
 }
 
 /* Search API using Query DSL */
 
 ElasticSearch.prototype.search = function(settings) {
+    settings = this.ensure(settings);
     var path = "_search";
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
     settings.method = "POST";
     if (settings.queryDSL) settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute(settings);
 }
 
 ElasticSearch.prototype.count = function(settings) {
+    settings = this.ensure(settings);
     var path = "_count";
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
-    (settings = this.ensure(settings)).path = path;
+    settings.path = path;
     settings.method = "POST";
     if (settings.queryDSL) settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute(settings);

@@ -28,6 +28,10 @@ methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
 methods.push(["clusterNodesStats",{nodes:["_local"]}]);
 methods.push(["clusterNodesShutdown",{"nodes":["_local"], "delay":"5s"}]);
 methods.push(["clusterNodesRestart",{nodes:["_local"]}]);
+methods.push(["indicesStatus",{}]);
+methods.push(["createIndex",{index:"test"}]);
+methods.push(["deleteIndex",{index:"test"}]);
+methods.push(["getMappings",{indices:"dev"}]);
 
 function populateMethods() {
     var methodList = $("#methods");

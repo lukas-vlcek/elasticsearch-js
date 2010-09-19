@@ -1,6 +1,6 @@
 h1. ElasticSearch Javascript Client
 
-_Note: This project is in its infancy age. Once developed a bit more it will provide Javascript client for ElasticSearch supporting jQuery and node.js clients._
+_Note: This project is in its infancy age. Once developed a bit more it will provide Javascript client for ElasticSearch supporting jQuery and node.js clients. Beais jQuery support is already implemented.__
 
 h2. Example
 
