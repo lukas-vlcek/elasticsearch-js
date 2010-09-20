@@ -7,38 +7,38 @@ h2. Simple example
 
 <pre>
 <code>
-<html>
-<head>
-    <title>ElasticSearch-js: simple example</title>
-    <script type="text/javascript" src="libs/jquery-1.4.2.min.js"></script>
-    <script type="text/javascript" src="libs/json2.js"></script>
-    <script type="text/javascript" src="../js/elasticsearch.js"></script>
-    <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
-</head>
-<body>
+    <html>
+    <head>
+        <title>ElasticSearch-js: simple example</title>
+        <script type="text/javascript" src="libs/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="libs/json2.js"></script>
+        <script type="text/javascript" src="../js/elasticsearch.js"></script>
+        <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
+    </head>
+    <body>
 
-    <form>
-        Show
-        <input value="cluster state" id="state" type="button">,
-        <input value="cluster health" id="health" type="button">,
-        <input value="cluster nodes info" id="nodes_info" type="button">
-    </form>
+        <form>
+            Show
+            <input value="cluster state" id="state" type="button">,
+            <input value="cluster health" id="health" type="button">,
+            <input value="cluster nodes info" id="nodes_info" type="button">
+        </form>
 
-    <pre id="output"></pre>
+        <pre id="output"></pre>
 
-    <script type="text/javascript">
+        <script type="text/javascript">
 
-        var displayJSON = function(data, xhr){ $("#output").empty().append(JSON.stringify(data, null, '  ')); };
+            var displayJSON = function(data, xhr){ $("#output").empty().append(JSON.stringify(data, null, '  ')); };
 
-        var es = new ElasticSearch({callback: displayJSON}); // by default connecting to localhost:9200
+            var es = new ElasticSearch({callback: displayJSON}); // by default connecting to localhost:9200
 
-        $("#state").click(function(){ es.clusterState() });
-        $("#health").click(function(){ es.clusterHealth({level: "shards"}) });
-        $("#nodes_info").click(function(){ es.clusterNodesInfo() });
+            $("#state").click(function(){ es.clusterState() });
+            $("#health").click(function(){ es.clusterHealth({level: "shards"}) });
+            $("#nodes_info").click(function(){ es.clusterNodesInfo() });
 
-    </script>
-</body>
-</html>
+        </script>
+    </body>
+    </html>
 </code>
 </pre>
 
