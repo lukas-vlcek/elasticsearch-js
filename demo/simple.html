@@ -1,12 +1,20 @@
-h1. ElasticSearch Javascript Client
-
-The goal of this project is to provide Javascript client for ElasticSearch supporting jQuery and Node.js clients.
-Basic jQuery support is already implemented.
-
-h2. Simple example
-
-<pre>
-<code>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<!--
+// This file is provided to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file
+// except in compliance with the License.  You may obtain
+// a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+-->
 <html>
 <head>
     <title>ElasticSearch-js: simple example</title>
@@ -16,12 +24,12 @@ h2. Simple example
     <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
 </head>
 <body>
-
+    
     <form>
         Show
         <input value="cluster state" id="state" type="button">,
         <input value="cluster health" id="health" type="button">,
-        <input value="cluster nodes info" id="nodes_info" type="button">
+        <input value="cluster nodes info" id="nodes_info" type="button">   
     </form>
 
     <pre id="output"></pre>
@@ -29,7 +37,7 @@ h2. Simple example
     <script type="text/javascript">
 
         var displayJSON = function(data, xhr){ $("#output").empty().append(JSON.stringify(data, null, '  ')); };
-
+        
         var es = new ElasticSearch({callback: displayJSON}); // by default connecting to localhost:9200
 
         $("#state").click(function(){ es.clusterState() });
@@ -39,11 +47,3 @@ h2. Simple example
     </script>
 </body>
 </html>
-</code>
-</pre>
-
-See source code of "simple.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/simple.html.
-
-For more complex example check "demo.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.js or
-open "demo.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.html in your web browser.
-

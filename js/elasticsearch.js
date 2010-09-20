@@ -95,7 +95,7 @@ ElasticSearch.prototype.clusterNodesRestart = function(settings) {
 
 /* Index Admin API */
 
-ElasticSearch.prototype.indicesStatus = function(settings) {
+ElasticSearch.prototype.status = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_status";
     settings.path = path;
@@ -137,7 +137,7 @@ ElasticSearch.prototype.getMappings = function(settings) {
     this.execute(settings);
 }
 
-ElasticSearch.prototype.flushIndices = function(settings) {
+ElasticSearch.prototype.flush = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_flush";
     if (settings.refresh && settings.refresh === "true") path += "?refresh=true";
@@ -146,7 +146,7 @@ ElasticSearch.prototype.flushIndices = function(settings) {
     this.execute(settings);
 }
 
-ElasticSearch.prototype.refreshIndices = function(settings) {
+ElasticSearch.prototype.refresh = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_refresh";
     settings.path = path;
@@ -154,7 +154,7 @@ ElasticSearch.prototype.refreshIndices = function(settings) {
     this.execute(settings);
 }
 
-ElasticSearch.prototype.indicesSnapshot = function(settings) {
+ElasticSearch.prototype.snapshot = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_gateway/snapshot";
     settings.path = path;
@@ -168,7 +168,7 @@ ElasticSearch.prototype.indicesSnapshot = function(settings) {
 //ElasticSearch.prototype.aliases = function(settings) {
 //}
 
-ElasticSearch.prototype.updateIndicesSettings = function(settings) {
+ElasticSearch.prototype.updateSettings = function(settings) {
     settings = this.ensure(settings);
     if (settings.number_of_replicas) {
         var path = (settings.indices || "_all") + "/_settings";
@@ -182,7 +182,7 @@ ElasticSearch.prototype.updateIndicesSettings = function(settings) {
     }
 }
 
-ElasticSearch.prototype.optimizeIndices = function(settings) {
+ElasticSearch.prototype.optimize = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_optimize";
     params = []

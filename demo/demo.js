@@ -30,15 +30,15 @@ methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
 methods.push(["clusterNodesStats",{nodes:["_local"]}]);
 methods.push(["clusterNodesShutdown",{"nodes":["_local"], "delay":"5s"}]);
 methods.push(["clusterNodesRestart",{nodes:["_local"]}]);
-methods.push(["indicesStatus",{}]);
+methods.push(["status",{}]);
 methods.push(["createIndex",{index:"test"}]);
 methods.push(["deleteIndex",{index:"test"}]);
 methods.push(["getMappings",{indices:"dev"}]);
-methods.push(["flushIndices",{indices:"dev", refresh:"true"}]);
-methods.push(["refreshIndices",{indices:"dev"}]);
-methods.push(["indicesSnapshot",{}]);
-methods.push(["optimizeIndices",{refresh:"true", flush:"true"}]);
-methods.push(["updateIndicesSettings",{number_of_replicas:4}]);
+methods.push(["flush",{indices:"dev", refresh:"true"}]);
+methods.push(["refresh",{indices:"dev"}]);
+methods.push(["snapshot",{}]);
+methods.push(["optimize",{refresh:"true", flush:"true"}]);
+methods.push(["updateSettings",{number_of_replicas:4}]);
 
 function populateMethods() {
     var methodList = $("#methods");
