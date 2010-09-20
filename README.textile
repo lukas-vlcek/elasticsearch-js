@@ -44,6 +44,5 @@ h2. Simple example
 
 See source code of "simple.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/simple.html.
 
-For more complex example check "demo.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.js or
-open "demo.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.html in your web browser.
+For more complex example check "demo.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.js or open "demo.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.html in your web browser.
 

@@ -225,7 +225,7 @@ ElasticSearch.prototype.get = function(settings) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.fields) settings.path += "?fields="+settings.fields
+    if (settings.fields) settings.path += "?fields="+settings.fields;
     settings.method = "GET";
     this.execute(settings);
 }
@@ -235,14 +235,39 @@ ElasticSearch.prototype.del = function(settings) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.replication) settings.path += "?replication="+settings.replication
+    if (settings.replication) settings.path += "?replication="+settings.replication;
     settings.method = "DELETE";
     this.execute(settings);
 }
 
 //ElasticSearch.prototype.delByQuery = function(settings) {
 //}
-//ElasticSearch.prototype.index = function(settings) {
+
+// http://www.elasticsearch.com/docs/elasticsearch/rest_api/index/
+ElasticSearch.prototype.index = function(settings) {
+    if ((settings === "undefined") || !(settings.index && settings.type)) {
+        throw("Both the index and type names must be provided.");
+    }
+    if (!settings.data) throw("No JSON data provided.");
+    settings.stringifyData = JSON.stringify(settings.data);
+    if (settings.id) {
+        settings.path = [settings.index, settings.type, settings.id].join("/");
+        if (settings.op_type && settings.op_type === "create") settings.path += "/_create";
+        settings.method = "PUT";
+    } else {
+        // automatic ID generation
+        settings.path = [settings.index, settings.type].join("/") + "/";
+        settings.method = "POST";
+    }
+    var params = [];
+    if (settings.replication) params.push("replication="+settings.replication);
+    if (settings.timeout) params.push("timeout="+settings.timeout);
+    if (params.length > 0) settings.path += "?" + params.join("&");
+    this.execute(settings);
+}
+
+// TODO http://github.com/elasticsearch/elasticsearch/issues/issue/371 
+//ElasticSearch.prototype.bulk = function(settings) {
 //}
 
 /* Internal helper methods */
