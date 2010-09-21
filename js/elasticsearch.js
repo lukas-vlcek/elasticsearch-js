@@ -107,7 +107,6 @@ ElasticSearch.prototype.createIndex = function(settings) {
     settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
-    this.log(path)
     var index = {
         number_of_shards : settings.number_of_shards || this.defaults.number_of_shards,
         number_of_replicas : settings.number_of_replicas || this.defaults.number_of_replicas
@@ -140,7 +139,7 @@ ElasticSearch.prototype.getMappings = function(settings) {
 ElasticSearch.prototype.flush = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_flush";
-    if (settings.refresh && settings.refresh === "true") path += "?refresh=true";
+    if (settings.refresh && settings.refresh === true) path += "?refresh=true";
     settings.path = path;
     settings.method = "POST";
     this.execute(settings);
@@ -200,28 +199,30 @@ ElasticSearch.prototype.optimize = function(settings) {
 
 ElasticSearch.prototype.search = function(settings) {
     settings = this.ensure(settings);
+    if (!settings.queryDSL) throw("queryDSL not provided");
     var path = "_search";
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     settings.path = path;
     settings.method = "POST";
-    if (settings.queryDSL) settings.stringifyData = JSON.stringify(settings.queryDSL);
+    settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute(settings);
 }
 
 ElasticSearch.prototype.count = function(settings) {
     settings = this.ensure(settings);
+    if (!settings.queryDSL) throw("queryDSL not provided");
     var path = "_count";
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     settings.path = path;
     settings.method = "POST";
-    if (settings.queryDSL) settings.stringifyData = JSON.stringify(settings.queryDSL);
+    settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute(settings);
 }
 
 ElasticSearch.prototype.get = function(settings) {
-    if ((settings === "undefined") || !(settings.index && settings.type && settings.id)) {
+    if (settings === "undefined" || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
@@ -231,7 +232,7 @@ ElasticSearch.prototype.get = function(settings) {
 }
 
 ElasticSearch.prototype.del = function(settings) {
-    if ((settings === "undefined") || !(settings.index && settings.type && settings.id)) {
+    if (settings === "undefined" || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
@@ -240,16 +241,22 @@ ElasticSearch.prototype.del = function(settings) {
     this.execute(settings);
 }
 
-//ElasticSearch.prototype.delByQuery = function(settings) {
-//}
+ElasticSearch.prototype.delByQuery = function(settings) {
+    settings = this.ensure(settings);
+    if (!settings.queryDSL) throw("queryDSL not provided");
+    settings.path = (settings.indices || "_all") + "/" + (settings.types ? settings.types + "/" : "") + "_query";
+    if (settings.replication) settings.path += "?replication="+settings.replication;
+    settings.stringifyData = JSON.stringify(settings.queryDSL);
+    settings.method = "DELETE";
+    this.execute(settings);
+}
 
-// http://www.elasticsearch.com/docs/elasticsearch/rest_api/index/
 ElasticSearch.prototype.index = function(settings) {
-    if ((settings === "undefined") || !(settings.index && settings.type)) {
+    if (settings === "undefined" || !settings.index || !settings.type) {
         throw("Both the index and type names must be provided.");
     }
-    if (!settings.data) throw("No JSON data provided.");
-    settings.stringifyData = JSON.stringify(settings.data);
+    if (!settings.document) throw("No JSON document provided.");
+    settings.stringifyData = JSON.stringify(settings.document);
     if (settings.id) {
         settings.path = [settings.index, settings.type, settings.id].join("/");
         if (settings.op_type && settings.op_type === "create") settings.path += "/_create";

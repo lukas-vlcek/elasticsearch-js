@@ -25,7 +25,7 @@ methods.push(["count",{queryDSL:{ match_all: {}} }]);
 methods.push(["get",{index:"test",type:"tweet",id:1}]);
 methods.push(["del",{index:"test",type:"tweet",id:1,replication:"sync"}]);
 methods.push(["clusterState",{}]);
-methods.push(["clusterHealth",{indices:["java-user","dev"], timeout:"30s"}]);
+methods.push(["clusterHealth",{indices:["test","foo"], timeout:"30s"}]);
 methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
 methods.push(["clusterNodesStats",{nodes:["_local"]}]);
 methods.push(["clusterNodesShutdown",{"nodes":["_local"], "delay":"5s"}]);
@@ -33,12 +33,13 @@ methods.push(["clusterNodesRestart",{nodes:["_local"]}]);
 methods.push(["status",{}]);
 methods.push(["createIndex",{index:"test"}]);
 methods.push(["deleteIndex",{index:"test"}]);
-methods.push(["getMappings",{indices:"dev"}]);
-methods.push(["flush",{indices:"dev", refresh:"true"}]);
-methods.push(["refresh",{indices:"dev"}]);
+methods.push(["getMappings",{indices:["foo","test"]}]);
+methods.push(["flush",{indices:"test", refresh:"true"}]);
+methods.push(["refresh",{indices:"test"}]);
 methods.push(["snapshot",{}]);
 methods.push(["optimize",{refresh:"true", flush:"true"}]);
 methods.push(["updateSettings",{number_of_replicas:4}]);
+methods.push(["delByQuery",{indices:"test", queryDSL: { term: { _id: 1}}}]);
 
 function populateMethods() {
     var methodList = $("#methods");
