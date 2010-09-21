@@ -222,7 +222,7 @@ ElasticSearch.prototype.count = function(settings) {
 }
 
 ElasticSearch.prototype.get = function(settings) {
-    if (settings === "undefined" || !settings.index || !settings.type || !settings.id) {
+    if (settings === undefined || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
@@ -232,7 +232,7 @@ ElasticSearch.prototype.get = function(settings) {
 }
 
 ElasticSearch.prototype.del = function(settings) {
-    if (settings === "undefined" || !settings.index || !settings.type || !settings.id) {
+    if (settings === undefined || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     settings.path = [settings.index, settings.type, settings.id].join("/");
@@ -252,7 +252,7 @@ ElasticSearch.prototype.delByQuery = function(settings) {
 }
 
 ElasticSearch.prototype.index = function(settings) {
-    if (settings === "undefined" || !settings.index || !settings.type) {
+    if (settings === undefined || !settings.index || !settings.type) {
         throw("Both the index and type names must be provided.");
     }
     if (!settings.document) throw("No JSON document provided.");
