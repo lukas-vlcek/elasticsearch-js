@@ -274,8 +274,15 @@ ElasticSearch.prototype.index = function(settings) {
 }
 
 // TODO http://github.com/elasticsearch/elasticsearch/issues/issue/371 
-//ElasticSearch.prototype.bulk = function(settings) {
-//}
+ElasticSearch.prototype.bulk = function(settings) {
+    if (settings === undefined || !settings.bulkData) {
+        throw("No bulk data provided.");
+    }
+    settings.stringifyData = JSON.stringify(settings.bulkData);
+    settings.path = "_bulk";
+    settings.method = "POST";
+    this.execute(settings);
+}
 
 /* Internal helper methods */
 
