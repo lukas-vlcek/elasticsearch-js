@@ -311,13 +311,15 @@ ElasticSearch.prototype.refreshServers = function(callback) {
             var servers = [];
             var pattern = new RegExp("inet\\[(\\S*)/(\\S+):(\\d+)\\]");
             for (node in data.nodes) {
-                var ha = data.nodes[node].http_address.toString();
-                if (pattern.test(ha)) {
-                    var match = ha.match(pattern);
-                    if (match.length == 3) {
-                         servers.push(match[1]+":"+match[2]);
-                    } else if (match.length == 4) {
-                         servers.push(match[1]+":"+match[3]);
+                if (data.nodes[node].http_address) {
+                    var ha = data.nodes[node].http_address.toString();
+                    if (pattern.test(ha)) {
+                        var match = ha.match(pattern);
+                        if (match.length == 3) {
+                             servers.push(match[1]+":"+match[2]);
+                        } else if (match.length == 4) {
+                             servers.push(match[1]+":"+match[3]);
+                        }
                     }
                 }
             }
