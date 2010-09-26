@@ -15,6 +15,7 @@
 var ElasticSearch = function(settings) {
     this.defaults = ElasticSearch.prototype.mixin({}, this.defaults, settings);
     this.client = ElasticSearch.prototype.getClient();
+    this.servers = [this.defaults.host+":"+this.defaults.port];
 }
 
 ElasticSearch.prototype.defaults = {
@@ -292,9 +293,38 @@ ElasticSearch.prototype.ensure = function(obj) {
 
 ElasticSearch.prototype.execute = function (options) {
     options = this.ensure(options);
-    var url = "http://" + (options.host || this.defaults.host) + ":" + (options.port || this.defaults.port) + "/" + options.path;
+    var url = "http://" + (this.servers[Math.floor(Math.random()*this.servers.length)]) + "/" + options.path;  
     var callback = options.callback || this.defaults.callback;
     options.method = options.method || this.defaults.method;
     this.log(options.method + ": " + url);
     ElasticSearch.prototype.executeInternal.call(this, url, options, callback);
+}
+
+/**
+ * Refresh list of servers that can be queried in cluster.
+ * @param callback function without parameters that is called after the server list is refreshed
+ */
+ElasticSearch.prototype.refreshServers = function(callback) {
+    var that = this;
+    this.clusterNodesInfo({callback:function(data){
+        if (data && data.nodes) {
+            var servers = [];
+            var pattern = new RegExp("inet\\[(\\S*)/(\\S+):(\\d+)\\]");
+            for (node in data.nodes) {
+                var ha = data.nodes[node].http_address.toString();
+                if (pattern.test(ha)) {
+                    var match = ha.match(pattern);
+                    if (match.length == 3) {
+                         servers.push(match[1]+":"+match[2]);
+                    } else if (match.length == 4) {
+                         servers.push(match[1]+":"+match[3]);
+                    }
+                }
+            }
+            that.servers = servers;
+            if (callback && typeof callback === "function") callback.call();
+        } else {
+            throw("No cluster nodes found!");
+        }
+    }});
 }
