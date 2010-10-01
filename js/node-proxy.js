@@ -60,9 +60,9 @@ var parseArgs = function() {
                         } else {
                             throw new Error("parameter [allowed] must be valid json object, not array");
     }}}}}}
-    for (i=0;i<defaults.allowed.GET.length;i++) { filters.GET.push(new RegExp(defaults.allowed.GET[i])); }
-    for (i=0;i<defaults.allowed.POST.length;i++) { filters.POST.push(new RegExp(defaults.allowed.POST[i])); }
-    for (i=0;i<defaults.allowed.OPTIONS.length;i++) { filters.OPTIONS.push(new RegExp(defaults.allowed.OPTIONS[i])); }
+    if (defaults.allowed.GET) for (i=0;i<defaults.allowed.GET.length;i++) { filters.GET.push(new RegExp(defaults.allowed.GET[i])); }
+    if (defaults.allowed.POST) for (i=0;i<defaults.allowed.POST.length;i++) { filters.POST.push(new RegExp(defaults.allowed.POST[i])); }
+    if (defaults.allowed.OPTIONS) for (i=0;i<defaults.allowed.OPTIONS.length;i++) { filters.OPTIONS.push(new RegExp(defaults.allowed.OPTIONS[i])); }
 }
 
 try { parseArgs(); }
@@ -100,9 +100,13 @@ http.createServer(function (req, res) {
                     var jsource;
                     if (jres.length > 0) {
                         jsource = JSON.parse(jres);
-                        delete jsource._shards; // TODO implement better filtering of response output
+//                        delete jsource._shards; // TODO implement better filtering of response output
                     }
-                    res.writeHead(response.statusCode, {'Content-Type': 'application/json'});
+                    { // why do I have to remove content-length and add chunked get it working?
+                        delete response.headers["Content-Length"];
+                        response.headers["Transfer-Encoding"] = "chunked";
+                    }
+                    res.writeHead(response.statusCode, response.headers);
                     res.end(JSON.stringify(jsource));
                 });
             });
