@@ -42,7 +42,6 @@ var defaults = {
     },
     refresh : 10,
     port : 8124
-    //,prune : false
 };
 var filters = {
     "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : []
@@ -95,39 +94,49 @@ var testFilters = function(method, url) {
     return false;
 }
 
-http.createServer(function (req, res) {
+var proxyRequestHandler = function (req, res) {
     if (testFilters(req.method, req.url)) {
+        
         var d = "";
+
         req.on('data', function(chunk) {
             d += chunk; // chunk.length bytes chunk
         });
+
         req.on('end', function() {
+
             var es = http.createClient("9200", "localhost"); // TODO get ElasticSearch-js client
             var request = es.request(req.method, req.url);
+
             request.on('response', function(response) {
-                var jres = "";
+
+                if (response.httpVersion === '1.1')
+                    response.headers["Transfer-Encoding"] = "chunked";
+                res.writeHead(response.statusCode, response.headers);
+
                 response.on('data', function(chunk) {
-                    jres += chunk;
+                    res.write(chunk);
                 });
+
                 response.on('end', function() {
-//                    if (defaults.prune && jres.length > 0) {
-//                        var jsource = JSON.parse(jres);
-//                        delete jsource._shards; // TODO implement better filtering of response output
-//                        jres = JSON.stringify(jsource);
-//                    }
-                    { // why do I have to add chunked to get it work correctly?
-                        response.headers["Transfer-Encoding"] = "chunked";
-                    }
-                    res.writeHead(response.statusCode, response.headers);
-                    res.end(jres);
+                    res.end();
                 });
             });
             request.write(d);
             request.end();
         });
+
     } else {
         res.writeHead(403, {'Content-Type': 'application/json'});
         res.end('{"error":"Request not supported by proxy"}');
     }
-}).listen(defaults.port, "127.0.0.1");
+}
+
+var start = function() {
+    var proxy = http.createServer()
+        .addListener("request", proxyRequestHandler)
+        .listen(defaults.port, "127.0.0.1");
+}
+
+start();
 console.log('ElasticSearch proxy server started at http://127.0.0.1:'+defaults.port+'/');
