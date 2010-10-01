@@ -42,6 +42,7 @@ var defaults = {
     },
     refresh : 10,
     port : 8124
+    //,prune : false
 };
 var filters = {
     "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : []
@@ -53,8 +54,8 @@ var parseArgs = function() {
         for (i=1;i<process.argv.length;i++) {
             var p = process.argv[i].split("=",2);
             if (defaults[p[0]]) {
-                if (p[0] === "refresh") {defaults.refresh=parseInt(p[1])}
-                else if (p[0] === "port") {defaults.port=parseInt(p[1])}
+                if (p[0] === "refresh") {defaults.refresh=parseInt(p[1],10)}
+                else if (p[0] === "port") {defaults.port=parseInt(p[1],10)}
                 else {
                     var o = JSON.parse(p[1]);
                     if (p[0] === "seeds") {
@@ -75,9 +76,6 @@ var parseArgs = function() {
                  filters[type].push(new RegExp(defaults.allow[type][i]));
             }
     }
-//    if (defaults.allow.GET) for (i=0;i<defaults.allow.GET.length;i++) { filters.GET.push(new RegExp(defaults.allow.GET[i])); }
-//    if (defaults.allow.POST) for (i=0;i<defaults.allow.POST.length;i++) { filters.POST.push(new RegExp(defaults.allow.POST[i])); }
-//    if (defaults.allow.OPTIONS) for (i=0;i<defaults.allow.OPTIONS.length;i++) { filters.OPTIONS.push(new RegExp(defaults.allow.OPTIONS[i])); }
 }
 
 try { parseArgs(); }
@@ -112,17 +110,16 @@ http.createServer(function (req, res) {
                     jres += chunk;
                 });
                 response.on('end', function() {
-                    var jsource;
-                    if (jres.length > 0) {
-                        jsource = JSON.parse(jres);
+//                    if (defaults.prune && jres.length > 0) {
+//                        var jsource = JSON.parse(jres);
 //                        delete jsource._shards; // TODO implement better filtering of response output
-                    }
-                    { // why do I have to remove content-length and add chunked to get it work correctly?
-                        delete response.headers["Content-Length"];
+//                        jres = JSON.stringify(jsource);
+//                    }
+                    { // why do I have to add chunked to get it work correctly?
                         response.headers["Transfer-Encoding"] = "chunked";
                     }
                     res.writeHead(response.statusCode, response.headers);
-                    res.end(JSON.stringify(jsource));
+                    res.end(jres);
                 });
             });
             request.write(d);
