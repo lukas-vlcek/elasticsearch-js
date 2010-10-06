@@ -109,12 +109,6 @@ var sys = require('sys'),
     fs = require('fs'),
     http = require('http');
 
-// helper function for parsing configuration
-var isArray = function(object) { return (object && object["join"]) ? true : false; };
-var isObject = function(object) { return (object && typeof object === "object") ? true : false; };
-var isNumber = function(object) { return (object && typeof object === "number") ? true : false; };
-var isString = function(object) { return (object && typeof object === "string") ? true : false; };
-
 var ElasticSearchProxy = function(configuration) {
 
     var proxy;
@@ -132,6 +126,12 @@ var ElasticSearchProxy = function(configuration) {
     };
 
     var filters = { "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : [] };
+
+    // helper function for parsing configuration
+    var isArray = function(object) { return (object && object["join"]) ? true : false; };
+    var isObject = function(object) { return (object && typeof object === "object") ? true : false; };
+    var isNumber = function(object) { return (object && typeof object === "number") ? true : false; };
+    var isString = function(object) { return (object && typeof object === "string") ? true : false; };
 
     var loadConfiguration = function() {
 
@@ -255,6 +255,7 @@ var ElasticSearchProxy = function(configuration) {
     init();
 };
 
+/*
 var config = {
     seeds : ["localhost1:9200"],
     refresh : 20,
@@ -262,11 +263,11 @@ var config = {
     host: "localhost"
 };
 
-/*
 var es = new ElasticSearchProxy(config);
 es.start(function(){
     console.log("Proxy is ready");
     es.stop();
 });
 */
+
 
