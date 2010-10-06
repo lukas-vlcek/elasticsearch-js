@@ -241,7 +241,7 @@ var ElasticSearchProxy = function(configuration) {
     var _start = function(callback) {
         proxy.listen(proxyConf.port, proxyConf.host, function() {
             sys.log("ElasticSearch proxy server started at http://"+proxyConf.host+":"+proxyConf.port+"/");
-            callback();
+            if (callback && typeof callback === 'function') callback();
         });
     };
 
@@ -255,19 +255,9 @@ var ElasticSearchProxy = function(configuration) {
     init();
 };
 
-/*
-var config = {
-    seeds : ["localhost1:9200"],
-    refresh : 20,
-    port : 8080,
-    host: "localhost"
+exports.getProxy = function(object) {
+    return new ElasticSearchProxy(object);
 };
 
-var es = new ElasticSearchProxy(config);
-es.start(function(){
-    console.log("Proxy is ready");
-    es.stop();
-});
-*/
 
 
