@@ -18,7 +18,7 @@
 var proxyFactory = require('./elasticsearch-proxy');
 
 var afterStart = function(proxy) {
-    console.log("Proxy server is ready");
+    console.log("Proxy server is ready at http://" + proxy.getHost() +":"+ proxy.getPort());
     proxy.stop();
 };
 

@@ -37,7 +37,7 @@
         -------------------------------------------------------------
 
             var config = { port : 80, allow : { "GET" : ["_search"] }};
-            var proxy = new ElasticSearchProxy(config).start();
+            var proxy = require('./elasticsearch-proxy').getProxy(config).start();
 
 
         Example #2:
@@ -45,7 +45,7 @@
         -------------------------------------------------------------
 
             var config = { allow : { "GET" : [".*"], "POST" : [".*"], "OPTIONS" : [".*"] }};
-            var proxy = new ElasticSearchProxy(config).start();
+            var proxy = require('./elasticsearch-proxy').getProxy(config).start();
 
 
     2) Passing "string" object into constructor. In this case the string is assumed to represent path to the file
@@ -56,7 +56,7 @@
         Start proxy with json file based configuration
         -------------------------------------------------------------
 
-            var proxy = new ElasticSearchProxy("./elastic_search_proxy.json").start();
+            var proxy = require('./elasticsearch-proxy').getProxy("./elastic_search_proxy.json").start();
 
 
         Assumes there is a file ./elastic_search_proxy.json with json configuration.
@@ -72,7 +72,7 @@
         Start proxy with the default settings
         -------------------------------------------------------------
 
-            var proxy = new ElasticSearchProxy().start();
+            var proxy = require('./elasticsearch-proxy').getProxy().start();
 
 
         The following are the default settings:
@@ -97,10 +97,10 @@
         Use callback function
         -------------------------------------------------------------
 
-            var es = new ElasticSearchProxy();
-            es.start(function(){
-                console.log("Proxy is ready");
-                es.stop();
+            var proxy = require('./elasticsearch-proxy').getProxy();
+            proxy.start(function(){
+                console.log("Proxy server is ready at http://" + proxy.getHost() +":"+ proxy.getPort());
+                proxy.stop();
             });
 
 */
@@ -251,6 +251,8 @@ var ElasticSearchProxy = function(configuration) {
 
     this.start = function(callback) { _start(callback); };
     this.stop = function() { _stop(); };
+    this.getHost = function() { return proxyConf.host };
+    this.getPort = function() { return proxyConf.port };
 
     init();
 };
