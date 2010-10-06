@@ -16,11 +16,33 @@
     Example of using ElasticSearch proxy server in NodeJS.
  */
 var proxyFactory = require('./elasticsearch-proxy');
+var http = require('http');
 
-var afterStart = function(proxy) {
-    console.log("Proxy server is ready at http://" + proxy.getHost() +":"+ proxy.getPort());
-    proxy.stop();
+var getClusterStatus = function(proxy) {
+    
+    var proxyClient = http.createClient(proxy.getPort(), proxy.getHost());
+    var request = proxyClient.request("GET", "/_status");
+    
+    request.on('response', function(response) {
+
+        var data = "";
+
+        console.log('STATUS: ' + response.statusCode);
+        console.log('HEADERS: ' + JSON.stringify(response.headers));
+
+        response.on('data', function(chunk) {
+            data += chunk;
+        });
+
+        response.on('end', function() {
+            console.log('RESPONSE BODY: ' + JSON.stringify(JSON.parse(data),null,'  '));
+            proxy.stop();
+        });
+    });
+    console.log("Getting cluster state");
+    request.end();
+
 };
 
 var proxyServer = proxyFactory.getProxy();
-proxyServer.start(function(){afterStart(proxyServer)});
+proxyServer.start(function(){getClusterStatus(proxyServer)});
