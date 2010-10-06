@@ -12,131 +12,261 @@
 // specific language governing permissions and limitations
 // under the License.
 
-/**
- * Simple Node.js based proxy for ElasticSearch:
- *
- * - it can expose only part of the REST API (can be configure by regular expressions). By default it is configured
- *   to expose only *safe* operations thus clients can not modify, delete and add indices nor they can shutdown and
- *   restart cluster nodes.
- *
- * Example #1: start the proxy on port 80 and allows only GET requests with '_search' in URL
- * $node node-proxy.js port=80 allow='{"GET":["_search"]}'
- *
- * Example #2: start the proxy on default port 8124 with no restrictions on any GET, POST and OPTIONS requests
- * $node node-proxy.js allow='{"GET":[".*"], "POST":[".*"], "OPTIONS":[".*"]}'
- *
- * It is possible to set allow rules for any of te following requests: GET, POST, PUT, DELETE and OPTIONS
- *
- * Note: OPTIONS requests can be used by some clients for pre-flight requests. If no OPTIONS requests allowed
- * then some clients may not work properly. Web Browsers such as Google Chrome or Firefox are known to use them.
- */
+/*
+    ElasticSearch proxy server for NodeJS.
 
-var http = require('http');
+    It can expose only part of the REST API (can be configure by rules using regular expressions). By default it
+    is configured to expose only *safe* operations thus clients can not modify, delete and add indices nor they
+    can shutdown and restart cluster nodes.
 
-var defaults = {
-    seeds : ["localhost:9200"],
-    allow : {
-        "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
-        "POST" : ["_search","/.+/.+/.+/_mlt"],
-        "OPTIONS" : [".*"] // allow any pre-flight request
-    },
-    refresh : 10,
-    port : 8124
-};
-var filters = {
-    "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : []
-};
+    It is possible to set rules for any of the following request types:
+    GET, POST, PUT, DELETE and OPTIONS
 
-// verify command line arguments (they override defaults) and pre-compile RegExps
-var parseArgs = function() {
-    if (process.argv.length > 2) {
-        for (i=1;i<process.argv.length;i++) {
-            var p = process.argv[i].split("=",2);
-            if (defaults[p[0]]) {
-                if (p[0] === "refresh") {defaults.refresh=parseInt(p[1],10)}
-                else if (p[0] === "port") {defaults.port=parseInt(p[1],10)}
-                else {
-                    var o = JSON.parse(p[1]);
-                    if (p[0] === "seeds") {
-                        if (typeof o === "object" && o["join"] && o.length > 0) {
-                           defaults.seeds = o;
-                        } else {
-                            throw new Error("parameter [seeds] is not a valid non-empty json array");
-                        }
-                    } else if (p[0] === "allow") {
-                        if (typeof o ==="object" && o["join"] === undefined) {
-                           defaults.allow = o;
-                        } else {
-                            throw new Error("parameter [allowed] must be valid json object, not array");
-    }}}}}}
-    for (type in filters) {
-        if (defaults.allow[type])
-            for (i=0;i<defaults.allow[type].length;i++) {
-                 filters[type].push(new RegExp(defaults.allow[type][i]));
+    Note: OPTIONS requests can be used by some clients for pre-flight requests. If no OPTIONS requests allowed
+    then some clients may not work properly.
+
+    ElasticSearchProxy can be configured by passing parameter into constructor. There are several ways how to
+    change default settings:
+
+    1) Passing a JSON object into the constructor. Then relevant values from this object will replace default
+       settings:
+
+
+        Example #1:
+        Start the proxy on port 80 and allows only GET requests with '_search' in URL
+        -------------------------------------------------------------
+
+            var config = { port : 80, allow : { "GET" : ["_search"] }};
+            var proxy = new ElasticSearchProxy(config).start();
+
+
+        Example #2:
+        Start the proxy on default port with no restrictions on any GET, POST and OPTIONS requests
+        -------------------------------------------------------------
+
+            var config = { allow : { "GET" : [".*"], "POST" : [".*"], "OPTIONS" : [".*"] }};
+            var proxy = new ElasticSearchProxy(config).start();
+
+
+    2) Passing "string" object into constructor. In this case the string is assumed to represent path to the file
+       with json configuration. Relevant information from this file will replace default settings.
+
+
+        Example #3:
+        Start proxy with json file based configuration
+        -------------------------------------------------------------
+
+            var proxy = new ElasticSearchProxy("./elastic_search_proxy.json").start();
+
+
+        Assumes there is a file ./elastic_search_proxy.json with json configuration.
+        If the file can not be found or is not accessible then the default settings are used instead.
+
+
+    3) Calling constructor without any parameter is the same as calling it with "./proxy.json" parameter.
+       In other words, if constructor called without parameter then it try to load configuration
+       from ./proxy.json file and merge it with default settings, if not successful then it simply
+       uses the default settings. 
+
+        Example #4:
+        Start proxy with the default settings
+        -------------------------------------------------------------
+
+            var proxy = new ElasticSearchProxy().start();
+
+
+        The following are the default settings:
+
+        {
+            seeds : ["localhost:9200"],
+            allow : {
+                "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
+                "POST" : ["_search","/.+/.+/.+/_mlt"],
+                "OPTIONS" : [".*"] // allow any pre-flight request
+            },
+            refresh : 10,
+            port : 8124,
+            host: "127.0.0.1"
+        }
+
+        
+    The start() method of ElasticSearchProxy can accept callback function. It is executed once the proxy server
+    is started and ready to be used.
+
+        Example #5:
+        Use callback function
+        -------------------------------------------------------------
+
+            var es = new ElasticSearchProxy();
+            es.start(function(){
+                console.log("Proxy is ready");
+                es.stop();
+            });
+
+*/
+
+var sys = require('sys'),
+    fs = require('fs'),
+    http = require('http');
+
+// helper function for parsing configuration
+var isArray = function(object) { return (object && object["join"]) ? true : false; };
+var isObject = function(object) { return (object && typeof object === "object") ? true : false; };
+var isNumber = function(object) { return (object && typeof object === "number") ? true : false; };
+var isString = function(object) { return (object && typeof object === "string") ? true : false; };
+
+var ElasticSearchProxy = function(configuration) {
+
+    var proxy;
+    var customConf = {};
+    var proxyConf = {
+        seeds : ["localhost:9200"],
+        allow : {
+            "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
+            "POST" : ["_search","/.+/.+/.+/_mlt"],
+            "OPTIONS" : [".*"] // allow any pre-flight request
+        },
+        refresh : 10,
+        port : 8124,
+        host: "127.0.0.1"
+    };
+
+    var filters = { "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : [] };
+
+    var loadConfiguration = function() {
+
+        var _conf = configuration;
+        if (_conf === undefined) {_conf="./proxy.json"; }
+
+        if (isObject(_conf)) {
+            customConf = _conf;
+        } else if (isString(_conf)) {
+            try {
+                var content = fs.readFileSync(_conf,'utf8').replace('\n', '');
+            } catch(err) {
+                sys.debug(err);
+                sys.debug("Can not load configuration from " + _conf);
+                sys.debug("Using the default configuration");
+                return;
             }
-    }
-}
+            customConf = JSON.parse(content);
+        } else {
+            throw new Error("Unexpected format of constructor argument");
+        }
+        merge(proxyConf, customConf);
+      };
 
-try { parseArgs(); }
-catch(err) {
-    console.log(err.name+": "+err.message);
-    process.exit(1);
-}
+    var merge = function(target, source) {
+        if (source) {
+            if (isArray(source.seeds)) { target.seeds = source.seeds; };
+            if (isObject(source.allow)) { target.allow = source.allow; };
+            if (isNumber(source.refresh)) { target.refresh = source.refresh; };
+            if (isNumber(source.port)) { target.port = source.port; };
+            if (isString(source.host)) { target.host = source.host; };
+        }
+    };
 
-var testFilters = function(method, url) {
-    if (method && url) {
-        for (i=0;i<filters[method.toUpperCase()].length;i++) {
-            if (filters[method.toUpperCase()][i].test(url)) {
-                return true;
+    var precompileFilters = function() {
+        for (type in filters) {
+            if (proxyConf.allow[type])
+                for (i=0;i<proxyConf.allow[type].length;i++) {
+                    filters[type].push(new RegExp(proxyConf.allow[type][i]));
+                }
+        }
+    };
+
+    var testFilters = function(method, url) {
+        if (method && url) {
+            for (i=0;i<filters[method.toUpperCase()].length;i++) {
+                if (filters[method.toUpperCase()][i].test(url)) {
+                    return true;
+                }
             }
         }
-    }
-    return false;
-}
+        return false;
+    };
 
-var proxyRequestHandler = function (req, res) {
-    if (testFilters(req.method, req.url)) {
-        
-        var d = "";
+    var proxyRequestHandler = function (req, res) {
+        if (testFilters(req.method, req.url)) {
 
-        req.on('data', function(chunk) {
-            d += chunk; // chunk.length bytes chunk
-        });
+            var d = "";
 
-        req.on('end', function() {
-
-            var es = http.createClient("9200", "localhost"); // TODO get ElasticSearch-js client
-            var request = es.request(req.method, req.url);
-
-            request.on('response', function(response) {
-
-                if (response.httpVersion === '1.1')
-                    response.headers["Transfer-Encoding"] = "chunked";
-                res.writeHead(response.statusCode, response.headers);
-
-                response.on('data', function(chunk) {
-                    res.write(chunk);
-                });
-
-                response.on('end', function() {
-                    res.end();
-                });
+            req.on('data', function(chunk) {
+                d += chunk; // chunk.length bytes chunk
             });
-            request.write(d);
-            request.end();
+
+            req.on('end', function() {
+
+                var es = http.createClient("9200", "localhost"); // TODO get ElasticSearch-js client
+                var request = es.request(req.method, req.url);
+
+                request.on('response', function(response) {
+
+                    if (response.httpVersion === '1.1')
+                        response.headers["Transfer-Encoding"] = "chunked";
+                    res.writeHead(response.statusCode, response.headers);
+
+                    response.on('data', function(chunk) {
+                        res.write(chunk);
+                    });
+
+                    response.on('end', function() {
+                        res.end();
+                    });
+                });
+                request.write(d);
+                request.end();
+            });
+
+        } else {
+            res.writeHead(403, {'Content-Type': 'application/json'});
+            res.end('{"error":"Request not supported by proxy"}');
+        }
+    };
+
+    var init = function() {
+        loadConfiguration();
+        sys.log("Using configuration:");
+        console.log(proxyConf);
+        precompileFilters();
+        proxy = http.createServer(proxyRequestHandler)
+                .on("close",
+                    function(errno){
+                        var msg = "ElasticSearch proxy server stopped";
+                        sys.log(errno ? msg + ", errno:["+errno+"]" : msg);
+                    }
+                );
+    };
+
+    var _start = function(callback) {
+        proxy.listen(proxyConf.port, proxyConf.host, function() {
+            sys.log("ElasticSearch proxy server started at http://"+proxyConf.host+":"+proxyConf.port+"/");
+            callback();
         });
+    };
 
-    } else {
-        res.writeHead(403, {'Content-Type': 'application/json'});
-        res.end('{"error":"Request not supported by proxy"}');
-    }
-}
+    var _stop = function() {
+        proxy.close();
+    };
 
-var start = function() {
-    var proxy = http.createServer()
-        .addListener("request", proxyRequestHandler)
-        .listen(defaults.port, "127.0.0.1");
-}
+    this.start = function(callback) { _start(callback); };
+    this.stop = function() { _stop(); };
 
-start();
-console.log('ElasticSearch proxy server started at http://127.0.0.1:'+defaults.port+'/');
+    init();
+};
+
+var config = {
+    seeds : ["localhost1:9200"],
+    refresh : 20,
+    port : 8080,
+    host: "localhost"
+};
+
+/*
+var es = new ElasticSearchProxy(config);
+es.start(function(){
+    console.log("Proxy is ready");
+    es.stop();
+});
+*/
+
