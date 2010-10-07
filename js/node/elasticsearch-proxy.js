@@ -20,7 +20,7 @@
     can shutdown and restart cluster nodes.
 
     It is possible to set rules for any of the following request types:
-    GET, POST, PUT, DELETE and OPTIONS
+    GET, POST, PUT, DELETE, HEAD and OPTIONS
 
     Note: OPTIONS requests can be used by some clients for pre-flight requests. If no OPTIONS requests allowed
     then some clients may not work properly.
@@ -82,7 +82,8 @@
             allow : {
                 "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
                 "POST" : ["_search","/.+/.+/.+/_mlt"],
-                "OPTIONS" : [".*"] // allow any pre-flight request
+                "OPTIONS" : [".*"], // allow any pre-flight request
+                "HEAD" : [".*"]
             },
             refresh : 10,
             port : 8124,
@@ -118,14 +119,15 @@ var ElasticSearchProxy = function(configuration) {
         allow : {
             "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
             "POST" : ["_search","/.+/.+/.+/_mlt"],
-            "OPTIONS" : [".*"] // allow any pre-flight request
+            "OPTIONS" : [".*"], // allow any pre-flight request
+            "HEAD" : [".*"]
         },
         refresh : 10,
         port : 8124,
         host: "127.0.0.1"
     };
 
-    var filters = { "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : [] };
+    var filters = { "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : [], "HEAD" : [] };
 
     // helper function for parsing configuration
     var isArray = function(object) { return (object && object["join"]) ? true : false; };
