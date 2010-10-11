@@ -44,5 +44,17 @@ var getClusterStatus = function(proxy) {
 
 };
 
-var proxyServer = proxyFactory.getProxy();
+var preRequest = function(requset) {
+    console.log("This function is executed before request is sent to Elastic Search cluster.");
+};
+
+var postRequest = function(request, responseData) {
+    console.log("This function is executed after receiving response from Elastic Search cluster.");
+    var json = JSON.parse(responseData);
+    delete json.indices;
+    return JSON.stringify(json);
+};
+
+var proxyServer = proxyFactory.getProxy(preRequest, postRequest);
+//var proxyServer = proxyFactory.getProxy();
 proxyServer.start(function(){getClusterStatus(proxyServer)});

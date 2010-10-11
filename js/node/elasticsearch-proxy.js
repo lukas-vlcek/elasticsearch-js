@@ -21,6 +21,7 @@
 
     It is possible to set rules for any of the following request types:
     GET, POST, PUT, DELETE, HEAD and OPTIONS
+    TRACE and CONNECT requests are not supported (as they are not supported by Elastic Search as well).
 
     Note: OPTIONS requests can be used by some clients for pre-flight requests. If no OPTIONS requests allowed
     then some clients may not work properly.
@@ -80,8 +81,8 @@
         {
             seeds : ["localhost:9200"],
             allow : {
-                "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
-                "POST" : ["_search","/.+/.+/.+/_mlt"],
+                "GET" : ["(_search|_status|_mapping|_count)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
+                "POST" : ["_search|_count","/.+/.+/.+/_mlt"],
                 "OPTIONS" : [".*"], // allow any pre-flight request
                 "HEAD" : [".*"]
             },
@@ -110,21 +111,23 @@ var sys = require('sys'),
     fs = require('fs'),
     http = require('http');
 
-var ElasticSearchProxy = function(configuration) {
+var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
 
     var proxy;
     var customConf = {};
     var proxyConf = {
         seeds : ["localhost:9200"],
         allow : {
-            "GET" : ["(_search|_status|_mapping)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
-            "POST" : ["_search","/.+/.+/.+/_mlt"],
+            "GET" : ["(_search|_status|_mapping|_count)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
+            "POST" : ["_search|_count","/.+/.+/.+/_mlt"],
             "OPTIONS" : [".*"], // allow any pre-flight request
             "HEAD" : [".*"]
         },
         refresh : 10,
         port : 8124,
-        host: "127.0.0.1"
+        host: "127.0.0.1",
+        preRequest: undefined,
+        postRequest: undefined
     };
 
     var filters = { "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : [], "HEAD" : [] };
@@ -134,6 +137,7 @@ var ElasticSearchProxy = function(configuration) {
     var isObject = function(object) { return (object && typeof object === "object") ? true : false; };
     var isNumber = function(object) { return (object && typeof object === "number") ? true : false; };
     var isString = function(object) { return (object && typeof object === "string") ? true : false; };
+    var isFunction = function(object) { return (object && typeof object === "function") ? true : false; };
 
     var loadConfiguration = function() {
 
@@ -156,6 +160,8 @@ var ElasticSearchProxy = function(configuration) {
             throw new Error("Unexpected format of constructor argument");
         }
         merge(proxyConf, customConf);
+        if (isFunction(preRequest)) { proxyConf.preRequest = preRequest; };
+        if (isFunction(postRequest)) { proxyConf.postRequest = postRequest; };
       };
 
     var merge = function(target, source) {
@@ -191,6 +197,10 @@ var ElasticSearchProxy = function(configuration) {
     var proxyRequestHandler = function (req, res) {
         if (testFilters(req.method, req.url)) {
 
+            if (isFunction(proxyConf.preRequest)) {
+                proxyConf.preRequest(req);
+            }
+
             var d = "";
 
             req.on('data', function(chunk) {
@@ -208,13 +218,30 @@ var ElasticSearchProxy = function(configuration) {
                         response.headers["Transfer-Encoding"] = "chunked";
                     res.writeHead(response.statusCode, response.headers);
 
-                    response.on('data', function(chunk) {
-                        res.write(chunk);
-                    });
 
-                    response.on('end', function() {
-                        res.end();
-                    });
+                    if (isFunction(proxyConf.postRequest)) {
+
+                        var o = "";
+                        
+                        response.on('data', function(chunk) {
+                            o += chunk;
+                        });
+
+                        response.on('end', function() {
+                            res.write(proxyConf.postRequest(req, o));
+                            res.end();
+                        });
+
+                    } else {
+
+                        response.on('data', function(chunk) {
+                            res.write(chunk);
+                        });
+
+                        response.on('end', function() {
+                            res.end();
+                        });
+                    }
                 });
                 request.write(d);
                 request.end();
@@ -253,14 +280,20 @@ var ElasticSearchProxy = function(configuration) {
 
     this.start = function(callback) { _start(callback); };
     this.stop = function() { _stop(); };
-    this.getHost = function() { return proxyConf.host };
-    this.getPort = function() { return proxyConf.port };
+    this.getHost = function() { return proxyConf.host; };
+    this.getPort = function() { return proxyConf.port; };
 
     init();
 };
 
-exports.getProxy = function(object) {
-    return new ElasticSearchProxy(object);
+exports.getProxy = function(object, preRequest, postRequest) {
+    var proxy = new ElasticSearchProxy(object, preRequest, postRequest);
+    return proxy;
+};
+
+exports.getProxy = function(preRequest, postRequest) {
+    var proxy = new ElasticSearchProxy(undefined, preRequest, postRequest);
+    return proxy;
 };
 
 
