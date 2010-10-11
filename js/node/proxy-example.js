@@ -44,7 +44,7 @@ var getClusterStatus = function(proxy) {
 
 };
 
-var preRequest = function(requset) {
+var preRequest = function(request) {
     console.log("This function is executed before request is sent to Elastic Search cluster.");
 };
 
