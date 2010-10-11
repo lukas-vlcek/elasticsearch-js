@@ -1,10 +1,12 @@
 h1. ElasticSearch Javascript Client
 
 There are two main goals of this project:
-# provide implementation of Javascript client for Elastic Search supporting jQuery and Node.js clients (basic jQuery support is already implemented).
+# provide implementation of Javascript client for Elastic Search supporting jQuery and NodeJS clients (basic jQuery support is already implemented).
 # provide NodeJS based proxy server for Elastic Search (almost complete now).
 
-h2. Simple example of Javascript client
+h2. Javascript client
+
+The following is a simple example:
 
 <pre>
 <code>
@@ -47,11 +49,11 @@ See source code of "simple.js":http://github.com/lukas-vlcek/elasticsearch-js/bl
 
 For more complex example check "demo.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.js or open "demo.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo.html in your web browser.
 
-h2. Proxy server example
+h2. Proxy server
 
-See "node":http://github.com/lukas-vlcek/elasticsearch-js/tree/master/js/node/ folder for sources (documentation can be found in source files).
+The proxy server is written in NodeJS. See "node":http://github.com/lukas-vlcek/elasticsearch-js/tree/master/js/node/ folder for sources (documentation can be found in source files).
 
 Basically, the proxy server can do the following for you:
 * It can restrict access to REST API (defaults to @safe@ operations only).
 * You can provide handlers to modify client request (e.g. you can ensure that @size@ is not too big) and Elastic Search response (e.g. you can remove sensitive data).
-* It can round-robin client requests among active http enabled nodes (it periodically refreshes list of active nodes), thus, it can provide a single URL for clients to communicate with Elastic Search cluster.
+* It can round-robin client requests among active http enabled nodes (it periodically refreshes list of active nodes), thus, it can provide a single URL for clients to communicate with Elastic Search cluster. (not implemented yet)
