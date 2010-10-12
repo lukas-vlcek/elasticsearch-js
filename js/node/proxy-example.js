@@ -48,7 +48,7 @@ var preRequest = function(request) {
     console.log("This function is executed before request is sent to Elastic Search cluster.");
 };
 
-var postRequest = function(request, responseData) {
+var postRequest = function(request, response, responseData) {
     console.log("This function is executed after receiving response from Elastic Search cluster.");
     var json = JSON.parse(responseData);
     delete json.indices;

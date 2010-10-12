@@ -15,22 +15,40 @@
 /*
     ElasticSearch proxy server for NodeJS.
 
-    It can expose only part of the REST API (can be configure by rules using regular expressions). By default it
-    is configured to expose only *safe* operations thus clients can not modify, delete and add indices nor they
-    can shutdown and restart cluster nodes.
+    It provides the following functions:
 
-    It is possible to set rules for any of the following request types:
-    GET, POST, PUT, DELETE, HEAD and OPTIONS
+    - It can expose only part of the REST API (can be configure by rules using regular expressions). By default it
+      is configured to expose only *safe* operations thus clients can not modify, delete and add indices nor they
+      can shutdown and restart cluster nodes.
+
+    - It can manipulate incoming request from client and outgoing response from Elastic Search cluster by custom
+      functions. This can be useful in situations when it is needed to check or modify data in client request or
+      strip out sensitive information from response. For example it may be required to ensure that incoming
+      "size" parameter in client query will not exceed specific value (do not let clients pull too much data in
+      one request). Or on the other hand it may be necessary to remove all IP addresses from response or remove
+      specific parts of response at all (like "nodes" section, etc).
+
+    When it comes to restricting the REST API the proxy server allows to set rules for any of the following
+    request types: GET, POST, PUT, DELETE, HEAD and OPTIONS
     TRACE and CONNECT requests are not supported (as they are not supported by Elastic Search as well).
 
     Note: OPTIONS requests can be used by some clients for pre-flight requests. If no OPTIONS requests allowed
     then some clients may not work properly.
 
-    ElasticSearchProxy can be configured by passing parameter into constructor. There are several ways how to
-    change default settings:
+    ElasticSearchProxy constructor accepts the following parameters:
+    ElasticSearchProxy(configuration, preRequest, postRequest)
 
-    1) Passing a JSON object into the constructor. Then relevant values from this object will replace default
-       settings:
+    preRequest = function(request):
+    is a handler function which is passed client request as a parameter. It is called before the request is handed
+    to the cluster.
+
+    postRequest = function(request, response, responseData):
+    is a handler function which is passed two parameters: client request, cluster response and response data. This
+    function is expected to return new responseData.
+
+    for details about configuration parameter see below:
+
+    1) Configuration is a JSON object. Then relevant values from this object will replace default settings:
 
 
         Example #1:
@@ -49,7 +67,7 @@
             var proxy = require('./elasticsearch-proxy').getProxy(config).start();
 
 
-    2) Passing "string" object into constructor. In this case the string is assumed to represent path to the file
+    2) Passing "string" object as configuration. In this case the string is assumed to represent path to the file
        with json configuration. Relevant information from this file will replace default settings.
 
 
@@ -64,10 +82,9 @@
         If the file can not be found or is not accessible then the default settings are used instead.
 
 
-    3) Calling constructor without any parameter is the same as calling it with "./proxy.json" parameter.
-       In other words, if constructor called without parameter then it try to load configuration
-       from ./proxy.json file and merge it with default settings, if not successful then it simply
-       uses the default settings. 
+    3) Configuration is undefined. That is the same as using string value of "./proxy.json".
+       In this case it tries to load configuration from ./proxy.json file and merge it with default settings,
+       if not successful then it simply uses the default settings. 
 
         Example #4:
         Start proxy with the default settings
@@ -104,6 +121,14 @@
                 console.log("Proxy server is ready at http://" + proxy.getHost() +":"+ proxy.getPort());
                 proxy.stop();
             });
+
+    There are exported two public methods (kind of factory methods) that can help creating new proxy server:
+
+    getProxy(object, preRequest, postRequest)
+    getProxy(preRequest, postRequest)
+
+    Especially the second one can be useful if you need to create proxy with default settings but provide custom
+    reguest handlers.
 
 */
 
@@ -228,7 +253,7 @@ var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
                         });
 
                         response.on('end', function() {
-                            res.write(proxyConf.postRequest(req, o));
+                            res.write(proxyConf.postRequest(req, response, o));
                             res.end();
                         });
 
