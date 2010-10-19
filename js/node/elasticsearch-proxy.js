@@ -100,7 +100,7 @@
 
         {
             seeds : ["localhost:9200"],
-            refresh : 2000,
+            refresh : 1000,
             allow : {
                 "GET" : ["(_search|_status|_mapping|_count)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
                 "POST" : ["_search|_count","/.+/.+/.+/_mlt"],

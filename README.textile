@@ -51,7 +51,7 @@ For more complex example check "demo.js":http://github.com/lukas-vlcek/elasticse
 
 h2. Proxy server
 
-The proxy server is written in NodeJS. See "node":http://github.com/lukas-vlcek/elasticsearch-js/tree/master/js/node/ folder for sources (documentation can be found in source files).
+The proxy server is written in NodeJS. See "node":http://github.com/lukas-vlcek/elasticsearch-js/tree/master/js/node/ folder for sources (detailed documentation can be found in source file: "elasticsearch-proxy.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/js/node/elasticsearch-proxy.js).
 
 Basically, the proxy server can do the following for you:
 * It can restrict access to REST API (defaults to _safe_ operations only).
