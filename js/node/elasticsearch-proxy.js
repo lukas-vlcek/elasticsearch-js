@@ -28,6 +28,9 @@
       one request). Or on the other hand it may be necessary to remove all IP addresses from response or remove
       specific parts of response at all (like "nodes" section, etc).
 
+    - It can pull list of all active http enabled nodes from cluster (using settings seeds and refresh values) and
+      round-robin http requests among them.
+
     When it comes to restricting the REST API the proxy server allows to set rules for any of the following
     request types: GET, POST, PUT, DELETE, HEAD and OPTIONS
     TRACE and CONNECT requests are not supported (as they are not supported by Elastic Search as well).
@@ -97,13 +100,13 @@
 
         {
             seeds : ["localhost:9200"],
+            refresh : 2000,
             allow : {
                 "GET" : ["(_search|_status|_mapping|_count)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
                 "POST" : ["_search|_count","/.+/.+/.+/_mlt"],
                 "OPTIONS" : [".*"], // allow any pre-flight request
                 "HEAD" : [".*"]
             },
-            refresh : 10,
             port : 8124,
             host: "127.0.0.1"
         }
