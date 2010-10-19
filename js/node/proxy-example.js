@@ -36,7 +36,7 @@ var getClusterStatus = function(proxy) {
 
         response.on('end', function() {
             console.log('RESPONSE BODY: ' + JSON.stringify(JSON.parse(data),null,'  '));
-            proxy.stop();
+//            proxy.stop();
         });
     });
     console.log("Getting cluster state");
@@ -57,4 +57,6 @@ var postRequest = function(request, response, responseData) {
 
 var proxyServer = proxyFactory.getProxy(preRequest, postRequest);
 //var proxyServer = proxyFactory.getProxy();
-proxyServer.start(function(){getClusterStatus(proxyServer)});
+proxyServer.start(function(){
+    setInterval(function(){getClusterStatus(proxyServer)},1000);
+});

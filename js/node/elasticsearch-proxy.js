@@ -138,17 +138,17 @@ var sys = require('sys'),
 
 var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
 
-    var proxy;
+    var proxy, httpClient, intervalId;
     var customConf = {};
     var proxyConf = {
         seeds : ["localhost:9200"],
+        refresh : 1000,
         allow : {
             "GET" : ["(_search|_status|_mapping|_count)","/.+/.+/.+/_mlt","/.+/.+/.+]"],
             "POST" : ["_search|_count","/.+/.+/.+/_mlt"],
             "OPTIONS" : [".*"], // allow any pre-flight request
             "HEAD" : [".*"]
         },
-        refresh : 10,
         port : 8124,
         host: "127.0.0.1",
         preRequest: undefined,
@@ -156,13 +156,6 @@ var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
     };
 
     var filters = { "GET" : [], "POST" : [], "OPTIONS" : [], "PUT" : [], "DELETE" : [], "HEAD" : [] };
-
-    // helper function for parsing configuration
-    var isArray = function(object) { return (object && object["join"]) ? true : false; };
-    var isObject = function(object) { return (object && typeof object === "object") ? true : false; };
-    var isNumber = function(object) { return (object && typeof object === "number") ? true : false; };
-    var isString = function(object) { return (object && typeof object === "string") ? true : false; };
-    var isFunction = function(object) { return (object && typeof object === "function") ? true : false; };
 
     var loadConfiguration = function() {
 
@@ -234,7 +227,7 @@ var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
 
             req.on('end', function() {
 
-                var es = http.createClient("9200", "localhost"); // TODO get ElasticSearch-js client
+                var es = httpClient.getClient();
                 var request = es.request(req.method, req.url);
 
                 request.on('response', function(response) {
@@ -290,16 +283,19 @@ var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
                         sys.log(errno ? msg + ", errno:["+errno+"]" : msg);
                     }
                 );
+        httpClient = new HttpClient(proxyConf.seeds);
     };
 
     var _start = function(callback) {
         proxy.listen(proxyConf.port, proxyConf.host, function() {
             sys.log("ElasticSearch proxy server started at http://"+proxyConf.host+":"+proxyConf.port+"/");
-            if (callback && typeof callback === 'function') callback();
+            httpClient.updateAllNodes(callback);
+            intervalId = setInterval( function(){httpClient.updateAllNodes()}, proxyConf.refresh);
         });
     };
 
     var _stop = function() {
+        clearInterval(intervalId);
         proxy.close();
     };
 
@@ -311,15 +307,173 @@ var ElasticSearchProxy = function(configuration, preRequest, postRequest) {
     init();
 };
 
-exports.getProxy = function(object, preRequest, postRequest) {
-    var proxy = new ElasticSearchProxy(object, preRequest, postRequest);
-    return proxy;
-};
+/*
+    HttpClient is a helper object. It keeps list af all active http enabled nodes
+    and can it provide http clients for these nodes.
+ */
+var HttpClient = function(seeds) {
 
-exports.getProxy = function(preRequest, postRequest) {
-    var proxy = new ElasticSearchProxy(undefined, preRequest, postRequest);
-    return proxy;
-};
+    var seeds = seeds.slice();
+    var allNodes = {};
+    var allNodesCount = 0;
+    var actualNodePos = 0;
+    var clusterName = undefined;
+    var httpAddressPattern = new RegExp("inet\\[(\\S*)/(\\S+):(\\d+)\\]");
+
+    var extractNodeInfo = function(node) {
+
+        var host, port;
+
+        var ha = node.http_address.toString();
+        if (httpAddressPattern.test(ha)) {
+            var match = ha.match(httpAddressPattern);
+            if (match.length == 3) {
+                host = match[1];
+                port = match[2];
+            } else if (match.length == 4) {
+                host = (match[1].trim().length > 0 ? match[1] : match[2]);
+                port = match[3];
+            }
+        }
+
+        return { nodeName: node.name, address: { host: host, port: port}};
+    }
+
+    // Collect http_addresses of all nodes in the cluster via seed nodes in parallel.
+    // Once all responses from seed nodes are collected then replace allNodes.
+    var _updateAllNodes = function(callback) {
+
+        var _allNodes = {};
+        var _processedSeeds = 0;
+        var _numberOfSeeds = seeds.length;
+
+        for (var i = 0; i < _numberOfSeeds; i++) {
+
+            var s = seeds[i].split(":");
+            if (s && s.length == 2) {
+
+                var c = http.createClient(s[1],s[0]);
+
+                c.addListener('error', function (err) {
+                    sys.log("Error using seed host: "+s[0]+":"+s[1]);
+                    console.log(err);
+                    _processedSeeds++;
+                    if (_processedSeeds === _numberOfSeeds) {
+                        if (callback && typeof callback === "function") callback();
+                    }
+                });
+
+                var request = c.request("GET", "/_cluster/nodes");
+                request.on('response', function(response) {
+
+                    var o = "";
+
+                    response.on('data', function(chunk) { o += chunk; });
+
+                    response.on('end', function() {
+                        var clusterNodes = JSON.parse(o);
+                        if (!clusterName) {clusterName = clusterNodes.cluster_name};
+                        // If cluster name does not match then skip node response.
+                        if (clusterName === clusterNodes.cluster_name) {
+                            for (nid in clusterNodes.nodes) {
+                                if (clusterNodes.nodes[nid].http_address || clusterNodes.nodes[nid].httpAddress) {
+                                    var nodeInfo = extractNodeInfo(clusterNodes.nodes[nid]);
+                                    // safety check: if http address parsing fails then empty object is returned
+                                    if (nodeInfo && nodeInfo.nodeName) {
+                                        _allNodes[nid] = nodeInfo;
+                                    }
+                                }
+                            }
+                        }
+                        _processedSeeds++;
+                        if (_processedSeeds === _numberOfSeeds) {
+                            allNodes = mergeNodes(allNodes, _allNodes);
+                            allNodesCount = 0;
+                            for (n in allNodes) { if (allNodes.hasOwnProperty(n)) allNodesCount++; }
+//                            console.log("updated all nodes: " + new Date());
+//                            console.log(allNodes);
+                            if (callback && typeof callback === "function") callback();
+                        }
+                    });
+                });
+
+                request.end();
+
+            } else {
+                _processedSeeds++;
+            }
+        }
+    }
+
+    var mergeNodes = function(oldNodes, newNodes) {
+        for (n in oldNodes) {
+            if (newNodes[n] === undefined) {delete oldNodes[n];}
+        }
+        for (n in newNodes) {
+            if (oldNodes[n] === undefined) {oldNodes[n] = newNodes[n];}
+        }
+        return oldNodes;
+    }
+
+    var _getClient = function() {
+
+        if (actualNodePos >= allNodesCount) {actualNodePos = 0;}
+        if (actualNodePos < allNodesCount) {
+            var tp = 0;
+            for (n in allNodes) {
+                if (tp === actualNodePos) {
+                    actualNodePos++;
+                    if (allNodes[n].client === undefined) {
+                        var client = http.createClient(allNodes[n].address.port, allNodes[n].address.host);
+                        // whatever error, remove node from other use
+                        client.addListener('error', function (err) {
+                            console.log('error', err);
+                            allNodesCount--;
+                            delete allNodes[n];
+                        });
+
+                        allNodes[n].client = client;
+                        return client;
+                    } else {
+                        return allNodes[n].client;
+                    }
+                }
+                tp++;
+            }
+        }
+    };
+
+    var _getClusterName = function() { return clusterName };
+
+    this.updateAllNodes = function(callback){_updateAllNodes(callback)};
+    this.getClusterName = function(){return _getClusterName()};
+    this.getClient = function(){return _getClient()};
+
+}
+
+// internal helper functions
+var isArray = function(object) { return (object && object["join"]) ? true : false; };
+var isObject = function(object) { return (object && typeof object === "object") ? true : false; };
+var isNumber = function(object) { return (object && typeof object === "number") ? true : false; };
+var isString = function(object) { return (object && typeof object === "string") ? true : false; };
+var isFunction = function(object) { return (object && typeof object === "function") ? true : false; };
+
+/*
+    Get proxy server instance via factory methods.
+ */
+if (typeof module !== 'undefined' && "exports" in module) {
+    
+    exports.getProxy = function(object, preRequest, postRequest) {
+        var proxy = new ElasticSearchProxy(object, preRequest, postRequest);
+        return proxy;
+    };
+
+    exports.getProxy = function(preRequest, postRequest) {
+        var proxy = new ElasticSearchProxy(undefined, preRequest, postRequest);
+        return proxy;
+    };
+}
+
 
 
 
