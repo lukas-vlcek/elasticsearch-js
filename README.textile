@@ -1,8 +1,8 @@
-h1. ElasticSearch Javascript Client
+h1. ElasticSearch Javascript Client and Proxy Server
 
-There are two main goals of this project:
-# provide implementation of Javascript client for Elastic Search supporting jQuery and NodeJS clients (basic jQuery support is already implemented).
-# provide NodeJS based proxy server for Elastic Search (almost complete now).
+There are two main parts in this project:
+# implementation of Javascript client for Elastic Search supporting jQuery and NodeJS clients (basic jQuery support is already implemented).
+# NodeJS based proxy server for Elastic Search.
 
 h2. Javascript client
 
@@ -56,4 +56,4 @@ The proxy server is written in NodeJS. See "node":http://github.com/lukas-vlcek/
 Basically, the proxy server can do the following for you:
 * It can restrict access to REST API (defaults to _safe_ operations only).
 * You can provide handlers to modify client request (e.g. you can ensure that @size@ is not too big) and Elastic Search response (e.g. you can remove sensitive data).
-* It can round-robin client requests among active http enabled nodes (it periodically refreshes list of active nodes), thus, it can provide a single URL for clients to communicate with Elastic Search cluster. (not implemented yet)
+* It can round-robin client requests among active http enabled nodes (it periodically refreshes list of active nodes), thus, it can provide a single URL for clients to communicate with Elastic Search cluster.
