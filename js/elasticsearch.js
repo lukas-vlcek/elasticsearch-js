@@ -15,7 +15,8 @@
 var ElasticSearch = function(settings) {
     this.defaults = ElasticSearch.prototype.mixin({}, this.defaults, settings);
     this.client = ElasticSearch.prototype.getClient();
-    this.servers = [this.defaults.host+":"+this.defaults.port];
+    this.seedServers = [this.defaults.host+":"+this.defaults.port];
+    this.activeServers = [];
 }
 
 ElasticSearch.prototype.defaults = {
@@ -293,7 +294,7 @@ ElasticSearch.prototype.ensure = function(obj) {
 
 ElasticSearch.prototype.execute = function (options) {
     options = this.ensure(options);
-    var url = "http://" + (this.servers[Math.floor(Math.random()*this.servers.length)]) + "/" + options.path;  
+    var url = "http://" + (this.seedServers[Math.floor(Math.random()*this.seedServers.length)]) + "/" + options.path;
     var callback = options.callback || this.defaults.callback;
     options.method = options.method || this.defaults.method;
     this.log(options.method + ": " + url);
@@ -301,32 +302,42 @@ ElasticSearch.prototype.execute = function (options) {
 }
 
 /**
- * Refresh list of servers that can be queried in cluster.
+ * Refresh list of active servers that can be queried in cluster.
  * @param callback function without parameters that is called after the server list is refreshed
  */
-ElasticSearch.prototype.refreshServers = function(callback) {
+ElasticSearch.prototype.refreshActiveServers = function(callback) {
     var that = this;
-    this.clusterNodesInfo({callback:function(data){
+    var parseHttpAddresses = function(data) {
         if (data && data.nodes) {
-            var servers = [];
+            var newServers = [];
             var pattern = new RegExp("inet\\[(\\S*)/(\\S+):(\\d+)\\]");
             for (node in data.nodes) {
                 if (data.nodes[node].http_address) {
                     var ha = data.nodes[node].http_address.toString();
                     if (pattern.test(ha)) {
                         var match = ha.match(pattern);
+                        console.log(match);
                         if (match.length == 3) {
-                             servers.push(match[1]+":"+match[2]);
+                             newServers.push(match[1]+":"+match[2]);
                         } else if (match.length == 4) {
-                             servers.push(match[1]+":"+match[3]);
+                             newServers.push((match[1].trim().length > 0 ? match[1] : match[2])+":"+match[3]);
                         }
                     }
                 }
             }
-            that.servers = servers;
+            console.log(that.activeServers);
+            that.activeServers = newServers;
+            console.log(that.activeServers);
             if (callback && typeof callback === "function") callback.call();
         } else {
             throw("No cluster nodes found!");
         }
-    }});
+    };
+
+    this.clusterNodesInfo({callback:parseHttpAddresses});
 }
+/*
+if (typeof export === 'object') {
+    exports.esclient = ElasticSearch;
+}
+*/

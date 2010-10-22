@@ -29,7 +29,8 @@
         Show
         <input value="cluster state" id="state" type="button">,
         <input value="cluster health" id="health" type="button">,
-        <input value="cluster nodes info" id="nodes_info" type="button">   
+        <input value="cluster nodes info" id="nodes_info" type="button">,
+        <input value="refresh nodes" id="refresh_nodes" type="button">
     </form>
 
     <div id="output" style="white-space: pre; font-family: monospace;"></div>
@@ -37,12 +38,13 @@
     <script type="text/javascript">
 
         var displayJSON = function(data, xhr){ $("#output").empty().append(JSON.stringify(data, null, '  ')); };
-        
+
         var es = new ElasticSearch({callback: displayJSON}); // by default connecting to localhost:9200
 
         $("#state").click(function(){ es.clusterState() });
         $("#health").click(function(){ es.clusterHealth({level: "shards"}) });
         $("#nodes_info").click(function(){ es.clusterNodesInfo() });
+//        $("#refresh_nodes").click(function(){ es.refreshActiveServers() });
 
     </script>
 </body>

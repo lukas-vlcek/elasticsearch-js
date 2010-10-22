@@ -28,11 +28,11 @@ ElasticSearch.prototype.executeInternal = function(path, options, callback) {
         url: path,
         data: options.stringifyData,
         processData: false,
-        dataType: "json",
-        success: function(data, statusText, xhr) {
+        dataType: "json"
+        ,success: function(data, statusText, xhr) {
             callback(data, xhr);
-        },
-        error: function(xhr, message, error) {
+        }
+        ,error: function(xhr, message, error) {
             callback(message, xhr, error);
         }
     };
