@@ -15,14 +15,11 @@
 var ElasticSearch = function(settings) {
     this.defaults = ElasticSearch.prototype.mixin({}, this.defaults, settings);
     this.client = ElasticSearch.prototype.getClient();
-    this.seedServers = [this.defaults.host+":"+this.defaults.port];
-    this.activeServers = [];
 }
 
 ElasticSearch.prototype.defaults = {
     number_of_shards : 3,
     number_of_replicas : 2,
-    method: 'GET',
     debug: false,
     host: "localhost",
     port: 9200,
@@ -35,74 +32,60 @@ ElasticSearch.prototype.defaults = {
 /* Cluster Admin API */
 
 ElasticSearch.prototype.clusterState = function(settings) {
-    (settings = this.ensure(settings)).path = "_cluster/state";
-    settings.method = "GET";
-    this.execute(settings);
+    this.execute("GET", "_cluster/state", settings);
 }
 
 ElasticSearch.prototype.clusterHealth = function(settings) {
     settings = this.ensure(settings);
     var path = "_cluster/health";
     var params = [];
-    if (settings.indices) path += "/"+settings.indices;
+    if (settings.indices) path += "/"+settings.indices.join(",");
     if (settings.level) params.push("level="+settings.level);
     if (settings.wait_for_status) params.push("wait_for_status="+settings.wait_for_status);
     if (settings.wait_for_relocating_shards) params.push("wait_for_relocating_shards="+settings.wait_for_relocating_shards);
     if (settings.wait_for_nodes) params.push("wait_for_nodes="+settings.wait_for_nodes);
     if (settings.timeout) params.push("timeout="+settings.timeout);
     if (params.length > 0) path += "?" + params.join("&");
-    settings.path = path;
-    settings.method = "GET";
-    this.execute(settings);
+    this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.clusterNodesInfo = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    if (settings.nodes) path += "/"+settings.nodes;
-    settings.path = path;
-    settings.method = "GET";
-    this.execute(settings);
+    if (settings.nodes) path += "/"+settings.nodes.join(",");
+    this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.clusterNodesStats = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    if (settings.nodes) path += "/"+settings.nodes;
+    if (settings.nodes) path += "/"+settings.nodes.join(",");
     path += "/stats";
-    settings.path = path;
-    settings.method = "GET";
-    this.execute(settings);
+    this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    path += "/"+ (settings.nodes || "_all") + "/_shutdown";
+    path += "/"+ (settings.nodes ? settings.nodes.join(",") : "_all") + "/_shutdown";
     if (settings.delay) path += "?delay=" + settings.delay;
-    settings.path = path;
-    settings.method = "POST";
-    this.execute(settings);
+    this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.clusterNodesRestart = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    path += "/"+ (settings.nodes || "_all") + "/_restart";
+    path += "/"+ (settings.nodes ? settings.nodes.join(",") : "_all") + "/_restart";
     if (settings.delay) path += "?delay=" + settings.delay;
-    settings.path = path;
-    settings.method = "POST";
-    this.execute(settings);
+    this.execute("POST", path, settings);
 }
 
 /* Index Admin API */
 
 ElasticSearch.prototype.status = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices || "_all") + "/_status";
-    settings.path = path;
-    settings.method = "GET";
-    this.execute(settings);
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_status";
+    this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.createIndex = function(settings) {
@@ -114,65 +97,51 @@ ElasticSearch.prototype.createIndex = function(settings) {
         number_of_replicas : settings.number_of_replicas || this.defaults.number_of_replicas
     };
     settings.stringifyData = JSON.stringify({"index":index});
-    settings.path = path;
-    settings.method = "PUT";
-    this.execute(settings);
+    this.execute("PUT", path, settings);
 }
 
 ElasticSearch.prototype.deleteIndex = function(settings) {
     settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
-    settings.path = path;
-    settings.method = "DELETE";
-    this.execute(settings);
+    this.execute("DELETE", path, settings);
 }
 
 ElasticSearch.prototype.getMappings = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices || "_all") + "/";
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/";
     if (settings.types) path += settings.types + "/";
     path += "_mapping";
-    settings.path = path;
-    settings.method = "GET";
-    this.execute(settings);
+    this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.flush = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices || "_all") + "/_flush";
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_flush";
     if (settings.refresh && settings.refresh === true) path += "?refresh=true";
-    settings.path = path;
-    settings.method = "POST";
-    this.execute(settings);
+    this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.refresh = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices || "_all") + "/_refresh";
-    settings.path = path;
-    settings.method = "POST";
-    this.execute(settings);
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_refresh";
+    this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.snapshot = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices || "_all") + "/_gateway/snapshot";
-    settings.path = path;
-    settings.method = "POST";
-    this.execute(settings);
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_gateway/snapshot";
+    this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.putMapping = function(settings) {
     settings = this.ensure(settings);
     if (!settings.type) { throw("An index type must be provided."); }
     if (!settings.mapping) { throw("No mapping request data provided."); }
-    var path = (settings.indices || "_all") + settings.type + "/_mapping";
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + settings.type + "/_mapping";
     if (settings.ignore_conflicts) { path += "?ignore_conflicts="settings.ignore_conflicts; }
-    settings.path = path;
     settings.stringifyData = JSON.stringify(settings.mapping);
-    settings.method = "POST";
-    this.execute(settings);
+    this.execute("POST", path, settings);
     
 }
 
@@ -181,9 +150,7 @@ ElasticSearch.prototype.aliases = function(settings) {
     if (settings.aliases) {
         settings.stringifyData = JSON.stringify(settings.aliases);
         var path = "_aliases";
-        settings.path = path;
-        settings.method = "POST";
-        this.execute(settings);
+        this.execute("POST", path, settings);
     } else {
         throw("No aliases request data provided.");
     }
@@ -192,29 +159,25 @@ ElasticSearch.prototype.aliases = function(settings) {
 ElasticSearch.prototype.updateSettings = function(settings) {
     settings = this.ensure(settings);
     if (settings.number_of_replicas) {
-        var path = (settings.indices || "_all") + "/_settings";
+        var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_settings";
         var index = {
             number_of_replicas : settings.number_of_replicas
         };
         settings.stringifyData = JSON.stringify({"index":index});
-        settings.path = path;
-        settings.method = "PUT";
-        this.execute(settings);
+        this.execute("PUT", path, settings);
     }
 }
 
 ElasticSearch.prototype.optimize = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices || "_all") + "/_optimize";
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_optimize";
     params = []
     if (settings.max_num_segments) params.push("max_num_segments="+settings.max_num_segments);
     if (settings.only_expunge_deletes) params.push("only_expunge_deletes="+settings.only_expunge_deletes);
     if (settings.refresh) params.push("refresh="+settings.refresh);
     if (settings.flush) params.push("flush="+settings.flush);
     if (params.length > 0) path += "?"+params.join("&");
-    settings.path = path;
-    settings.method = "POST";
-    this.execute(settings);
+    this.execute("POST", path, settings);
 }
 
 /* Search API using Query DSL */
@@ -223,54 +186,48 @@ ElasticSearch.prototype.search = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
     var path = "_search";
-    if (settings.types) path = settings.types + "/" + path;
+    if (settings.types) path = settings.types.join(",") + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
-    settings.path = path;
-    settings.method = "POST";
     settings.stringifyData = JSON.stringify(settings.queryDSL);
-    this.execute(settings);
+    this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.count = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
     var path = "_count";
-    if (settings.types) path = settings.types + "/" + path;
+    if (settings.types) path = settings.types.join(",") + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
-    settings.path = path;
-    settings.method = "POST";
     settings.stringifyData = JSON.stringify(settings.queryDSL);
-    this.execute(settings);
+    this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.get = function(settings) {
     if (settings === undefined || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
-    settings.path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.fields) settings.path += "?fields="+settings.fields;
-    settings.method = "GET";
-    this.execute(settings);
+    var path = [settings.index, settings.type, settings.id].join("/");
+    if (settings.fields) path += "?fields="+settings.fields.join(",");
+    this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.del = function(settings) {
     if (settings === undefined || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
-    settings.path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.replication) settings.path += "?replication="+settings.replication;
-    settings.method = "DELETE";
-    this.execute(settings);
+    var path = [settings.index, settings.type, settings.id].join("/");
+    if (settings.replication) path += "?replication="+settings.replication;
+    this.execute("DELETE", path, settings);
 }
 
 ElasticSearch.prototype.delByQuery = function(settings) {
     settings = this.ensure(settings);
-    if (!settings.queryDSL) throw("queryDSL not provided");
-    settings.path = (settings.indices || "_all") + "/" + (settings.types ? settings.types + "/" : "") + "_query";
-    if (settings.replication) settings.path += "?replication="+settings.replication;
+    if (!settings.queryDSL) throw("No queryDSL provided.");
+    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/" +
+               (settings.types ? settings.types.join(",") + "/" : "") + "_query";
+    if (settings.replication) path += "?replication="+settings.replication;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
-    settings.method = "DELETE";
-    this.execute(settings);
+    this.execute("DELETE", path, settings);
 }
 
 ElasticSearch.prototype.index = function(settings) {
@@ -279,30 +236,28 @@ ElasticSearch.prototype.index = function(settings) {
     }
     if (!settings.document) throw("No JSON document provided.");
     settings.stringifyData = JSON.stringify(settings.document);
+    var path;
+    var method;
     if (settings.id) {
-        settings.path = [settings.index, settings.type, settings.id].join("/");
+        path = [settings.index, settings.type, settings.id].join("/");
         if (settings.op_type && settings.op_type === "create") settings.path += "/_create";
-        settings.method = "PUT";
+        method = "PUT";
     } else {
         // automatic ID generation
-        settings.path = [settings.index, settings.type].join("/") + "/";
-        settings.method = "POST";
+        path = [settings.index, settings.type].join("/") + "/";
+        method = "POST";
     }
     var params = [];
     if (settings.replication) params.push("replication="+settings.replication);
     if (settings.timeout) params.push("timeout="+settings.timeout);
-    if (params.length > 0) settings.path += "?" + params.join("&");
-    this.execute(settings);
+    if (params.length > 0) path += "?" + params.join("&");
+    this.execute(method, path, settings);
 }
 
 ElasticSearch.prototype.bulk = function(settings) {
-    if (settings === undefined || !settings.bulkData) {
-        throw("No bulk data provided.");
-    }
+    if (settings === undefined || !settings.bulkData) { throw("No bulk data provided."); }
     settings.stringifyData = JSON.stringify(settings.bulkData);
-    settings.path = "_bulk";
-    settings.method = "POST";
-    this.execute(settings);
+    this.execute("POST", "_bulk", settings);
 }
 
 /* Internal helper methods */
@@ -311,12 +266,12 @@ ElasticSearch.prototype.ensure = function(obj) {
     return obj || {};
 }
 
-ElasticSearch.prototype.execute = function (options) {
+ElasticSearch.prototype.execute = function (method, path, options) {
     options = this.ensure(options);
-    var url = "http://" + (this.seedServers[Math.floor(Math.random()*this.seedServers.length)]) + "/" + options.path;
+    var url = "http://" + this.defaults.host + ":" + this.defaults.port + "/" + path;
     var callback = options.callback || this.defaults.callback;
-    options.method = options.method || this.defaults.method;
-    this.log(options.method + ": " + url);
+    options.method = method;
+//    this.log(options.method + ": " + url);
     ElasticSearch.prototype.executeInternal.call(this, url, options, callback);
 }
 
