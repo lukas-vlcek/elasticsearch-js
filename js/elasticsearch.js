@@ -163,11 +163,31 @@ ElasticSearch.prototype.snapshot = function(settings) {
     this.execute(settings);
 }
 
-//ElasticSearch.prototype.putMappings = function(settings) {
-//}
-//
-//ElasticSearch.prototype.aliases = function(settings) {
-//}
+ElasticSearch.prototype.putMapping = function(settings) {
+    settings = this.ensure(settings);
+    if (!settings.type) { throw("An index type must be provided."); }
+    if (!settings.mapping) { throw("No mapping request data provided."); }
+    var path = (settings.indices || "_all") + settings.type + "/_mapping";
+    if (settings.ignore_conflicts) { path += "?ignore_conflicts="settings.ignore_conflicts; }
+    settings.path = path;
+    settings.stringifyData = JSON.stringify(settings.mapping);
+    settings.method = "POST";
+    this.execute(settings);
+    
+}
+
+ElasticSearch.prototype.aliases = function(settings) {
+    settings = this.ensure(settings);
+    if (settings.aliases) {
+        settings.stringifyData = JSON.stringify(settings.aliases);
+        var path = "_aliases";
+        settings.path = path;
+        settings.method = "POST";
+        this.execute(settings);
+    } else {
+        throw("No aliases request data provided.");
+    }
+}
 
 ElasticSearch.prototype.updateSettings = function(settings) {
     settings = this.ensure(settings);
@@ -275,7 +295,6 @@ ElasticSearch.prototype.index = function(settings) {
     this.execute(settings);
 }
 
-// TODO http://github.com/elasticsearch/elasticsearch/issues/issue/371 
 ElasticSearch.prototype.bulk = function(settings) {
     if (settings === undefined || !settings.bulkData) {
         throw("No bulk data provided.");
@@ -301,41 +320,7 @@ ElasticSearch.prototype.execute = function (options) {
     ElasticSearch.prototype.executeInternal.call(this, url, options, callback);
 }
 
-/**
- * Refresh list of active servers that can be queried in cluster.
- * @param callback function without parameters that is called after the server list is refreshed
- */
-ElasticSearch.prototype.refreshActiveServers = function(callback) {
-    var that = this;
-    var parseHttpAddresses = function(data) {
-        if (data && data.nodes) {
-            var newServers = [];
-            var pattern = new RegExp("inet\\[(\\S*)/(\\S+):(\\d+)\\]");
-            for (node in data.nodes) {
-                if (data.nodes[node].http_address) {
-                    var ha = data.nodes[node].http_address.toString();
-                    if (pattern.test(ha)) {
-                        var match = ha.match(pattern);
-                        console.log(match);
-                        if (match.length == 3) {
-                             newServers.push(match[1]+":"+match[2]);
-                        } else if (match.length == 4) {
-                             newServers.push((match[1].trim().length > 0 ? match[1] : match[2])+":"+match[3]);
-                        }
-                    }
-                }
-            }
-            console.log(that.activeServers);
-            that.activeServers = newServers;
-            console.log(that.activeServers);
-            if (callback && typeof callback === "function") callback.call();
-        } else {
-            throw("No cluster nodes found!");
-        }
-    };
 
-    this.clusterNodesInfo({callback:parseHttpAddresses});
-}
 /*
 if (typeof export === 'object') {
     exports.esclient = ElasticSearch;
