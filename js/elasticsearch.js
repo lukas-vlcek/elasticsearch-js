@@ -39,7 +39,7 @@ ElasticSearch.prototype.clusterHealth = function(settings) {
     settings = this.ensure(settings);
     var path = "_cluster/health";
     var params = [];
-    if (settings.indices) path += "/"+settings.indices.join(",");
+    if (settings.indices) path += "/"+settings.indices;
     if (settings.level) params.push("level="+settings.level);
     if (settings.wait_for_status) params.push("wait_for_status="+settings.wait_for_status);
     if (settings.wait_for_relocating_shards) params.push("wait_for_relocating_shards="+settings.wait_for_relocating_shards);
@@ -52,14 +52,14 @@ ElasticSearch.prototype.clusterHealth = function(settings) {
 ElasticSearch.prototype.clusterNodesInfo = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    if (settings.nodes) path += "/"+settings.nodes.join(",");
+    if (settings.nodes) path += "/"+settings.nodes;
     this.execute("GET", path, settings);
 }
 
 ElasticSearch.prototype.clusterNodesStats = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    if (settings.nodes) path += "/"+settings.nodes.join(",");
+    if (settings.nodes) path += "/"+settings.nodes;
     path += "/stats";
     this.execute("GET", path, settings);
 }
@@ -67,7 +67,7 @@ ElasticSearch.prototype.clusterNodesStats = function(settings) {
 ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    path += "/"+ (settings.nodes ? settings.nodes.join(",") : "_all") + "/_shutdown";
+    path += "/"+ (settings.nodes || "_all") + "/_shutdown";
     if (settings.delay) path += "?delay=" + settings.delay;
     this.execute("POST", path, settings);
 }
@@ -75,7 +75,7 @@ ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
 ElasticSearch.prototype.clusterNodesRestart = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
-    path += "/"+ (settings.nodes ? settings.nodes.join(",") : "_all") + "/_restart";
+    path += "/"+ (settings.nodes || "_all") + "/_restart";
     if (settings.delay) path += "?delay=" + settings.delay;
     this.execute("POST", path, settings);
 }
@@ -84,7 +84,7 @@ ElasticSearch.prototype.clusterNodesRestart = function(settings) {
 
 ElasticSearch.prototype.status = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_status";
+    var path = (settings.indices || "_all") + "/_status";
     this.execute("GET", path, settings);
 }
 
@@ -109,7 +109,7 @@ ElasticSearch.prototype.deleteIndex = function(settings) {
 
 ElasticSearch.prototype.getMappings = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/";
+    var path = (settings.indices || "_all") + "/";
     if (settings.types) path += settings.types + "/";
     path += "_mapping";
     this.execute("GET", path, settings);
@@ -117,20 +117,20 @@ ElasticSearch.prototype.getMappings = function(settings) {
 
 ElasticSearch.prototype.flush = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_flush";
+    var path = (settings.indices || "_all") + "/_flush";
     if (settings.refresh && settings.refresh === true) path += "?refresh=true";
     this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.refresh = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_refresh";
+    var path = (settings.indices || "_all") + "/_refresh";
     this.execute("POST", path, settings);
 }
 
 ElasticSearch.prototype.snapshot = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_gateway/snapshot";
+    var path = (settings.indices || "_all") + "/_gateway/snapshot";
     this.execute("POST", path, settings);
 }
 
@@ -138,7 +138,7 @@ ElasticSearch.prototype.putMapping = function(settings) {
     settings = this.ensure(settings);
     if (!settings.type) { throw("An index type must be provided."); }
     if (!settings.mapping) { throw("No mapping request data provided."); }
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + settings.type + "/_mapping";
+    var path = (settings.indices || "_all") + settings.type + "/_mapping";
     if (settings.ignore_conflicts) { path += "?ignore_conflicts="settings.ignore_conflicts; }
     settings.stringifyData = JSON.stringify(settings.mapping);
     this.execute("POST", path, settings);
@@ -159,7 +159,7 @@ ElasticSearch.prototype.aliases = function(settings) {
 ElasticSearch.prototype.updateSettings = function(settings) {
     settings = this.ensure(settings);
     if (settings.number_of_replicas) {
-        var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_settings";
+        var path = (settings.indices || "_all") + "/_settings";
         var index = {
             number_of_replicas : settings.number_of_replicas
         };
@@ -170,7 +170,7 @@ ElasticSearch.prototype.updateSettings = function(settings) {
 
 ElasticSearch.prototype.optimize = function(settings) {
     settings = this.ensure(settings);
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/_optimize";
+    var path = (settings.indices || "_all") + "/_optimize";
     params = []
     if (settings.max_num_segments) params.push("max_num_segments="+settings.max_num_segments);
     if (settings.only_expunge_deletes) params.push("only_expunge_deletes="+settings.only_expunge_deletes);
@@ -186,7 +186,7 @@ ElasticSearch.prototype.search = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
     var path = "_search";
-    if (settings.types) path = settings.types.join(",") + "/" + path;
+    if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute("POST", path, settings);
@@ -196,7 +196,7 @@ ElasticSearch.prototype.count = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
     var path = "_count";
-    if (settings.types) path = settings.types.join(",") + "/" + path;
+    if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute("POST", path, settings);
@@ -207,7 +207,7 @@ ElasticSearch.prototype.get = function(settings) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     var path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.fields) path += "?fields="+settings.fields.join(",");
+    if (settings.fields) path += "?fields="+settings.fields;
     this.execute("GET", path, settings);
 }
 
@@ -223,8 +223,7 @@ ElasticSearch.prototype.del = function(settings) {
 ElasticSearch.prototype.delByQuery = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("No queryDSL provided.");
-    var path = (settings.indices ? settings.indices.join(",") : "_all") + "/" +
-               (settings.types ? settings.types.join(",") + "/" : "") + "_query";
+    var path = (settings.indices || "_all") + "/" + (settings.types ? settings.types + "/" : "") + "_query";
     if (settings.replication) path += "?replication="+settings.replication;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
     this.execute("DELETE", path, settings);
