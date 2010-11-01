@@ -139,7 +139,7 @@ ElasticSearch.prototype.putMapping = function(settings) {
     if (!settings.type) { throw("An index type must be provided."); }
     if (!settings.mapping) { throw("No mapping request data provided."); }
     var path = (settings.indices || "_all") + settings.type + "/_mapping";
-    if (settings.ignore_conflicts) { path += "?ignore_conflicts="settings.ignore_conflicts; }
+    if (settings.ignore_conflicts) { path += "?ignore_conflicts=" + settings.ignore_conflicts; }
     settings.stringifyData = JSON.stringify(settings.mapping);
     this.execute("POST", path, settings);
     
