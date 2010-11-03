@@ -260,7 +260,7 @@ ElasticSearch.prototype.bulk = function(settings) {
 }
 
 /*
-    req method allows for low-level adhoc custom requests.
+    Allows for low-level adhoc custom requests.
     
     params:
         method:     http method (eg "GET", "POST", ...)
