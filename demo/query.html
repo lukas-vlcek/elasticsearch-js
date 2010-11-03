@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Simple query shooter</title>
+    <script type="text/javascript" src="libs/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="libs/json2.js"></script>
+    <script type="text/javascript" src="../js/elasticsearch.js"></script>
+    <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
+</head>
+<body>
+
+    <div style="float:left;">
+        <div>
+            <label for="query">Put your json request:</label>
+            <select id="method">
+                <option value="GET">GET</option>
+                <option value="PUT">PUT</option>
+                <option value="POST" selected>POST</option>
+                <option value="DELETE">DELETE</option>
+            </select>
+            Path:
+            <input type="text" size="20" id="path" value="_search">
+            <input value="execute" id="go" type="button">
+        </div>
+        <textarea rows="15" cols="60" id="query">{ "query" : { "match_all" : {}}}</textarea>
+    </div>
+
+    <div id="output" style="white-space: pre; font-family: monospace; font-size: 0.8em; float:left;"></div>
+
+    <script type="text/javascript">
+        var displayJSON = function(data, xhr){ $("#output").empty().append("<h3>Output</h3>",JSON.stringify(data, null, '  ')); };
+        var es = new ElasticSearch({callback: displayJSON});
+        $("#go").click(function(){
+            var query = $("#query").val();
+            if (query) {
+                var path = $("#path").val();
+                var method = $("#method").val();
+                es.request(method, path, query);
+            }
+        });
+    </script>
+
+</body>
+</html>

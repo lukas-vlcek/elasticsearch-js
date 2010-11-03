@@ -259,6 +259,24 @@ ElasticSearch.prototype.bulk = function(settings) {
     this.execute("POST", "_bulk", settings);
 }
 
+/*
+    req method allows for low-level adhoc custom requests.
+    
+    params:
+        method:     http method (eg "GET", "POST", ...)
+        path:       eg "_search" or "_all/_cluster/state" etc...
+        data:       either string or JSON request data
+        callback:   [optional] function to be called once the ajax is finished
+*/
+
+ElasticSearch.prototype.request = function(method, path, data, callback) {
+    var settings = {};
+    if (typeof data === "string") {settings.stringifyData = data}
+    else {settings.stringifyData = JSON.stringify(data);}
+    if (callback && typeof callback === "function") {settings.callback = callback;}
+    this.execute(method, path, settings);
+}
+
 /* Internal helper methods */
 
 ElasticSearch.prototype.ensure = function(obj) {
