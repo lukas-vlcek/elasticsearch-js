@@ -18,8 +18,8 @@ var ElasticSearch = function(settings) {
 }
 
 ElasticSearch.prototype.defaults = {
-    number_of_shards : 3,
-    number_of_replicas : 2,
+    number_of_shards : 5,
+    number_of_replicas : 1,
     debug: false,
     host: "localhost",
     port: 9200,
@@ -182,6 +182,14 @@ ElasticSearch.prototype.optimize = function(settings) {
 
 /* Search API using Query DSL */
 
+/*
+    Search using QueryDSL
+    params:
+        queryDSL:   custom DSL query
+        types:      [optional] single index type or array of index types
+        indices:    [optional] single index or array of indices
+        callback:   [optional] function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.search = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
@@ -283,13 +291,13 @@ ElasticSearch.prototype.ensure = function(obj) {
     return obj || {};
 }
 
-ElasticSearch.prototype.execute = function (method, path, options) {
-    options = this.ensure(options);
+ElasticSearch.prototype.execute = function (method, path, settings) {
+    var settings = this.ensure(settings);
     var url = "http://" + this.defaults.host + ":" + this.defaults.port + "/" + path;
-    var callback = options.callback || this.defaults.callback;
-    options.method = method;
+    var callback = settings.callback || this.defaults.callback;
+    settings.method = method;
 //    this.log(options.method + ": " + url);
-    ElasticSearch.prototype.executeInternal.call(this, url, options, callback);
+    ElasticSearch.prototype.executeInternal.call(this, url, settings, callback);
 }
 
 
