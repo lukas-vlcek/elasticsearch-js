@@ -18,21 +18,30 @@ var ElasticSearch = function(settings) {
 }
 
 ElasticSearch.prototype.defaults = {
-    number_of_shards : 5,
+    number_of_shards   : 5,
     number_of_replicas : 1,
-    debug: false,
-    host: "localhost",
-    port: 9200,
-    callback: function(response, meta) {
+    debug    : false,
+    host     : "localhost",
+    port     : 9200,
+    callback : function(response, meta) {
         // TODO By default the "debug" is set to false.
         if (response) ElasticSearch.prototype.log(response)
     }
 }
 
+ElasticSearch.prototype.method = {
+    get    : "GET",
+    post   : "POST",
+    put    : "PUT",
+    delete : "DELETE"
+}
+
 /* Cluster Admin API */
 
 ElasticSearch.prototype.clusterState = function(settings) {
-    this.execute("GET", "_cluster/state", settings);
+    with(this) {
+        execute(method.get, "_cluster/state", settings);
+    }
 }
 
 ElasticSearch.prototype.clusterHealth = function(settings) {
@@ -46,14 +55,18 @@ ElasticSearch.prototype.clusterHealth = function(settings) {
     if (settings.wait_for_nodes) params.push("wait_for_nodes="+settings.wait_for_nodes);
     if (settings.timeout) params.push("timeout="+settings.timeout);
     if (params.length > 0) path += "?" + params.join("&");
-    this.execute("GET", path, settings);
+    with(this) {
+        execute(method.get, path, settings);
+    }
 }
 
 ElasticSearch.prototype.clusterNodesInfo = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
     if (settings.nodes) path += "/"+settings.nodes;
-    this.execute("GET", path, settings);
+    with(this) {
+        execute(method.get, path, settings);
+    }
 }
 
 ElasticSearch.prototype.clusterNodesStats = function(settings) {
@@ -61,7 +74,9 @@ ElasticSearch.prototype.clusterNodesStats = function(settings) {
     var path = "_cluster/nodes";
     if (settings.nodes) path += "/"+settings.nodes;
     path += "/stats";
-    this.execute("GET", path, settings);
+    with(this) {
+        execute(method.get, path, settings);
+    }
 }
 
 ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
@@ -69,7 +84,9 @@ ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
     var path = "_cluster/nodes";
     path += "/"+ (settings.nodes || "_all") + "/_shutdown";
     if (settings.delay) path += "?delay=" + settings.delay;
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 ElasticSearch.prototype.clusterNodesRestart = function(settings) {
@@ -77,7 +94,9 @@ ElasticSearch.prototype.clusterNodesRestart = function(settings) {
     var path = "_cluster/nodes";
     path += "/"+ (settings.nodes || "_all") + "/_restart";
     if (settings.delay) path += "?delay=" + settings.delay;
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 /* Index Admin API */
@@ -85,7 +104,9 @@ ElasticSearch.prototype.clusterNodesRestart = function(settings) {
 ElasticSearch.prototype.status = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_status";
-    this.execute("GET", path, settings);
+    with(this) {
+        execute(method.get, path, settings);
+    }
 }
 
 ElasticSearch.prototype.createIndex = function(settings) {
@@ -97,14 +118,18 @@ ElasticSearch.prototype.createIndex = function(settings) {
         number_of_replicas : settings.number_of_replicas || this.defaults.number_of_replicas
     };
     settings.stringifyData = JSON.stringify({"index":index});
-    this.execute("PUT", path, settings);
+    with(this) {
+        execute(method.put, path, settings);
+    }
 }
 
 ElasticSearch.prototype.deleteIndex = function(settings) {
     settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
-    this.execute("DELETE", path, settings);
+    with(this) {
+        execute(method.delete, path, settings);
+    }
 }
 
 ElasticSearch.prototype.getMappings = function(settings) {
@@ -112,26 +137,34 @@ ElasticSearch.prototype.getMappings = function(settings) {
     var path = (settings.indices || "_all") + "/";
     if (settings.types) path += settings.types + "/";
     path += "_mapping";
-    this.execute("GET", path, settings);
+    with(this) {
+        execute(method.get, path, settings);
+    }
 }
 
 ElasticSearch.prototype.flush = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_flush";
     if (settings.refresh && settings.refresh === true) path += "?refresh=true";
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 ElasticSearch.prototype.refresh = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_refresh";
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 ElasticSearch.prototype.snapshot = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_gateway/snapshot";
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 ElasticSearch.prototype.putMapping = function(settings) {
@@ -141,7 +174,9 @@ ElasticSearch.prototype.putMapping = function(settings) {
     var path = (settings.indices || "_all") + settings.type + "/_mapping";
     if (settings.ignore_conflicts) { path += "?ignore_conflicts=" + settings.ignore_conflicts; }
     settings.stringifyData = JSON.stringify(settings.mapping);
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
     
 }
 
@@ -150,7 +185,9 @@ ElasticSearch.prototype.aliases = function(settings) {
     if (settings.aliases) {
         settings.stringifyData = JSON.stringify(settings.aliases);
         var path = "_aliases";
-        this.execute("POST", path, settings);
+        with(this) {
+            execute(method.post, path, settings);
+        }
     } else {
         throw("No aliases request data provided.");
     }
@@ -164,7 +201,9 @@ ElasticSearch.prototype.updateSettings = function(settings) {
             number_of_replicas : settings.number_of_replicas
         };
         settings.stringifyData = JSON.stringify({"index":index});
-        this.execute("PUT", path, settings);
+        with(this) {
+            execute(method.put, path, settings);
+        }
     }
 }
 
@@ -177,7 +216,9 @@ ElasticSearch.prototype.optimize = function(settings) {
     if (settings.refresh) params.push("refresh="+settings.refresh);
     if (settings.flush) params.push("flush="+settings.flush);
     if (params.length > 0) path += "?"+params.join("&");
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 /* Search API using Query DSL */
@@ -197,7 +238,9 @@ ElasticSearch.prototype.search = function(settings) {
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 ElasticSearch.prototype.count = function(settings) {
@@ -207,7 +250,9 @@ ElasticSearch.prototype.count = function(settings) {
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
-    this.execute("POST", path, settings);
+    with(this) {
+        execute(method.post, path, settings);
+    }
 }
 
 ElasticSearch.prototype.get = function(settings) {
@@ -216,7 +261,9 @@ ElasticSearch.prototype.get = function(settings) {
     }
     var path = [settings.index, settings.type, settings.id].join("/");
     if (settings.fields) path += "?fields="+settings.fields;
-    this.execute("GET", path, settings);
+    with(this) {
+        execute(method.get, path, settings);
+    }
 }
 
 ElasticSearch.prototype.del = function(settings) {
@@ -225,7 +272,9 @@ ElasticSearch.prototype.del = function(settings) {
     }
     var path = [settings.index, settings.type, settings.id].join("/");
     if (settings.replication) path += "?replication="+settings.replication;
-    this.execute("DELETE", path, settings);
+    with(this) {
+        execute(method.delete, path, settings);
+    }
 }
 
 ElasticSearch.prototype.delByQuery = function(settings) {
@@ -234,7 +283,9 @@ ElasticSearch.prototype.delByQuery = function(settings) {
     var path = (settings.indices || "_all") + "/" + (settings.types ? settings.types + "/" : "") + "_query";
     if (settings.replication) path += "?replication="+settings.replication;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
-    this.execute("DELETE", path, settings);
+    with(this) {
+        execute(method.delete, path, settings);
+    }
 }
 
 ElasticSearch.prototype.index = function(settings) {
@@ -248,11 +299,11 @@ ElasticSearch.prototype.index = function(settings) {
     if (settings.id) {
         path = [settings.index, settings.type, settings.id].join("/");
         if (settings.op_type && settings.op_type === "create") settings.path += "/_create";
-        method = "PUT";
+        method = this.method.put;
     } else {
         // automatic ID generation
         path = [settings.index, settings.type].join("/") + "/";
-        method = "POST";
+        method = this.method.post;
     }
     var params = [];
     if (settings.replication) params.push("replication="+settings.replication);
@@ -264,7 +315,9 @@ ElasticSearch.prototype.index = function(settings) {
 ElasticSearch.prototype.bulk = function(settings) {
     if (settings === undefined || !settings.bulkData) { throw("No bulk data provided."); }
     settings.stringifyData = JSON.stringify(settings.bulkData);
-    this.execute("POST", "_bulk", settings);
+    with(this) {
+        execute(method.post, "_bulk", settings);
+    }
 }
 
 /*
