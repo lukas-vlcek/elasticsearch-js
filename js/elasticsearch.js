@@ -38,12 +38,24 @@ ElasticSearch.prototype.method = {
 
 /* Cluster Admin API */
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+
+    TODO Response filters 
+*/
 ElasticSearch.prototype.clusterState = function(settings) {
     with(this) {
         execute(method.get, "_cluster/state", settings);
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.clusterHealth = function(settings) {
     settings = this.ensure(settings);
     var path = "_cluster/health";
@@ -60,6 +72,11 @@ ElasticSearch.prototype.clusterHealth = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.clusterNodesInfo = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
@@ -69,6 +86,11 @@ ElasticSearch.prototype.clusterNodesInfo = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.clusterNodesStats = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
@@ -79,6 +101,11 @@ ElasticSearch.prototype.clusterNodesStats = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
@@ -89,6 +116,11 @@ ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.clusterNodesRestart = function(settings) {
     settings = this.ensure(settings)
     var path = "_cluster/nodes";
@@ -101,6 +133,11 @@ ElasticSearch.prototype.clusterNodesRestart = function(settings) {
 
 /* Index Admin API */
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.status = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_status";
@@ -109,6 +146,11 @@ ElasticSearch.prototype.status = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.createIndex = function(settings) {
     settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
@@ -123,6 +165,11 @@ ElasticSearch.prototype.createIndex = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.deleteIndex = function(settings) {
     settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
@@ -132,6 +179,11 @@ ElasticSearch.prototype.deleteIndex = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.getMappings = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/";
@@ -151,6 +203,11 @@ ElasticSearch.prototype.flush = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.refresh = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_refresh";
@@ -167,6 +224,11 @@ ElasticSearch.prototype.snapshot = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.putMapping = function(settings) {
     settings = this.ensure(settings);
     if (!settings.type) { throw("An index type must be provided."); }
@@ -180,6 +242,11 @@ ElasticSearch.prototype.putMapping = function(settings) {
     
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.aliases = function(settings) {
     settings = this.ensure(settings);
     if (settings.aliases) {
@@ -193,6 +260,11 @@ ElasticSearch.prototype.aliases = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.updateSettings = function(settings) {
     settings = this.ensure(settings);
     if (settings.number_of_replicas) {
@@ -207,6 +279,11 @@ ElasticSearch.prototype.updateSettings = function(settings) {
     }
 }
 
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.optimize = function(settings) {
     settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_optimize";
@@ -226,64 +303,125 @@ ElasticSearch.prototype.optimize = function(settings) {
 /*
     Search using QueryDSL
     params:
-        queryDSL:   custom DSL query
+        settings.queryDSL   custom DSL query
         -optional-
-        types:      single index type or array of index types
-        indices:    single index or array of indices
-        callback:   function to be called once the ajax is finished
+        settings.types      single index type or array of index types
+        settings.indices    single index or array of indices
+        settings.routing
+        settings.callback   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.search = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
+    settings.stringifyData = JSON.stringify(settings.queryDSL);
     var path = "_search";
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
-    settings.stringifyData = JSON.stringify(settings.queryDSL);
+    if (settings.routing) path += "?routing="+settings.routing;
     with(this) {
         execute(method.post, path, settings);
     }
 }
 
+/*
+    Query and return number of matched documents.
+    params:
+        settings.queryDSL   custom DSL query
+        -optinal-
+        settings.types      index types
+        settings.indices    index names
+        settings.routing
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.count = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("queryDSL not provided");
+    settings.stringifyData = JSON.stringify(settings.queryDSL);
     var path = "_count";
     if (settings.types) path = settings.types + "/" + path;
     path = (settings.indices ? settings.indices : "_all") + "/"+ path;
-    settings.stringifyData = JSON.stringify(settings.queryDSL);
+    if (settings.routing) path += "?routing=" + settings.routing;
     with(this) {
         execute(method.post, path, settings);
     }
 }
 
+/*
+    Get document from index.
+    params:
+        settings.index      index name
+        settings.type       index type
+        settings.id         document id
+        -optional-
+        settings.fields     _source [default]
+        settings.routing
+        settings.refresh    false [default]
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.get = function(settings) {
     if (settings === undefined || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     var path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.fields) path += "?fields="+settings.fields;
+    var params = [];
+    if (settings.fields) params.push("fields="+settings.fields);
+    if (settings.routing) params.push("routing="+settings.routing);
+    if (settings.refresh) params.push("refresh="+settings.refresh);
+    if (params.length > 0) path += "?" + params.join("&");
     with(this) {
         execute(method.get, path, settings);
     }
 }
 
+/*
+    Delete document from index.
+    params:
+        settings.index      index name
+        settings.type       index type
+        settings.id         document id
+        -optional-
+        settings.replication    async / sync [default]
+        settings.consistency    one / all / quorum [default]
+        settings.refresh    false [default]
+        settings.routing
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.del = function(settings) {
     if (settings === undefined || !settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
     }
     var path = [settings.index, settings.type, settings.id].join("/");
-    if (settings.replication) path += "?replication="+settings.replication;
+    var params = [];
+    if (settings.replication) params.push("replication="+settings.replication);
+    if (settings.consistency) params.push("consistency="+settings.consistency);
+    if (settings.refresh) params.push("refresh="+settings.refresh);
+    if (settings.routing) params.push("routing="+settings.routing);
+    if (params.length > 0) path += "?" + params.join("&");
     with(this) {
         execute(method.delete, path, settings);
     }
 }
 
+/*
+    Delete documents from index by query.
+    params:
+        settings.queryDSL
+        -optional-
+        settings.replication    async / sync [default]
+        settings.consistency    one / all / quorum [default]
+        settings.routing
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.delByQuery = function(settings) {
     settings = this.ensure(settings);
     if (!settings.queryDSL) throw("No queryDSL provided.");
-    var path = (settings.indices || "_all") + "/" + (settings.types ? settings.types + "/" : "") + "_query";
-    if (settings.replication) path += "?replication="+settings.replication;
     settings.stringifyData = JSON.stringify(settings.queryDSL);
+    var path = (settings.indices || "_all") + "/" + (settings.types ? settings.types + "/" : "") + "_query";
+    var params = [];
+    if (settings.replication) params.push("replication="+settings.replication);
+    if (settings.consistency) params.push("consistency="+settings.consistency);
+    if (settings.routing) params.push("routing="+settings.routing);
+    if (params.length > 0) path += "?" + params.join("&");
     with(this) {
         execute(method.delete, path, settings);
     }
@@ -304,6 +442,7 @@ ElasticSearch.prototype.delByQuery = function(settings) {
         settings.consistency    one / all / quorum [default]
         settings.routing
         settings.parent
+        settings.callback   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.index = function(settings) {
     if (settings === undefined || !settings.index || !settings.type) {
@@ -333,25 +472,41 @@ ElasticSearch.prototype.index = function(settings) {
     this.execute(method, path, settings);
 }
 
+/*
+    Bulk operation.
+    params:
+        settings.bulkData   JSON bulk data
+        -optional-
+        settings.refresh    false [default]
+        settings.consistency    one / all / quorum [default]
+        settings.callback   function to be called once the ajax is finished
+ */
 ElasticSearch.prototype.bulk = function(settings) {
     if (settings === undefined || !settings.bulkData) { throw("No bulk data provided."); }
     settings.stringifyData = JSON.stringify(settings.bulkData);
+    var path = "_bulk";
+    var params = [];
+    if (settings.refresh) params.push("refresh="+settings.refresh);
+    if (settings.consistency) params.push("consistency="+settings.consistency);
+    if (params.length > 0) path += "?" + params.join("&");
     with(this) {
-        execute(method.post, "_bulk", settings);
+        execute(method.post, path, settings);
     }
 }
 
 /*
-    Allows for low-level adhoc custom requests.
-    
-    params:
-        method:     http method (eg "GET", "POST", ...)
-        path:       eg "_search" or "_all/_cluster/state" etc...
-        data:       either string or JSON request data
-        -optional-
-        callback:   function to be called once the ajax is finished
+    TODO _mlt
 */
 
+/*
+    Allows for low-level adhoc custom requests.    
+    params:
+        method      http method (eg "GET", "POST", ...)
+        path        eg "_search" or "_all/_cluster/state" etc...
+        data        either string or JSON request data
+        -optional-
+        callback    function to be called once the ajax is finished
+*/
 ElasticSearch.prototype.request = function(method, path, data, callback) {
     var settings = {};
     if (typeof data === "string") {settings.stringifyData = data}
