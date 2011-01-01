@@ -227,9 +227,10 @@ ElasticSearch.prototype.optimize = function(settings) {
     Search using QueryDSL
     params:
         queryDSL:   custom DSL query
-        types:      [optional] single index type or array of index types
-        indices:    [optional] single index or array of indices
-        callback:   [optional] function to be called once the ajax is finished
+        -optional-
+        types:      single index type or array of index types
+        indices:    single index or array of indices
+        callback:   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.search = function(settings) {
     settings = this.ensure(settings);
@@ -288,6 +289,22 @@ ElasticSearch.prototype.delByQuery = function(settings) {
     }
 }
 
+/*
+    Index new document.
+    params:
+        settings.index      index name
+        settings.type       index type
+        settings.document   JSON document to index
+        -optional-
+        settings.id         document id provided by user
+        settings.op_type    can be set to "create"
+        settings.replication    async / sync [default]
+        settings.timeout    1m [default]
+        settings.refresh    false [default]
+        settings.consistency    one / all / quorum [default]
+        settings.routing
+        settings.parent
+ */
 ElasticSearch.prototype.index = function(settings) {
     if (settings === undefined || !settings.index || !settings.type) {
         throw("Both the index and type names must be provided.");
@@ -308,6 +325,10 @@ ElasticSearch.prototype.index = function(settings) {
     var params = [];
     if (settings.replication) params.push("replication="+settings.replication);
     if (settings.timeout) params.push("timeout="+settings.timeout);
+    if (settings.refresh) params.push("refresh="+settings.refresh);
+    if (settings.consistency) params.push("consistency="+settings.consistency);
+    if (settings.routing) params.push("routing="+settings.routing);
+    if (settings.parent) params.push("parent="+settings.parent);
     if (params.length > 0) path += "?" + params.join("&");
     this.execute(method, path, settings);
 }
@@ -327,7 +348,8 @@ ElasticSearch.prototype.bulk = function(settings) {
         method:     http method (eg "GET", "POST", ...)
         path:       eg "_search" or "_all/_cluster/state" etc...
         data:       either string or JSON request data
-        callback:   [optional] function to be called once the ajax is finished
+        -optional-
+        callback:   function to be called once the ajax is finished
 */
 
 ElasticSearch.prototype.request = function(method, path, data, callback) {
