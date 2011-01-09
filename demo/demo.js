@@ -24,21 +24,21 @@ methods.push(["search",{indices:["_all"], types:["mail"], queryDSL:{ size: 1, fr
 methods.push(["count",{queryDSL:{ match_all: {}} }]);
 methods.push(["get",{index:"test",type:"tweet",id:1}]);
 methods.push(["delete",{index:"test",type:"tweet",id:1,replication:"sync"}]);
-methods.push(["clusterState",{}]);
-methods.push(["clusterHealth",{indices:["test","foo"], timeout:"30s"}]);
-methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
-methods.push(["clusterNodesStats",{nodes:["_local"]}]);
-methods.push(["clusterNodesShutdown",{"nodes":["_local"], "delay":"5s"}]);
-methods.push(["clusterNodesRestart",{nodes:["_local"]}]);
-methods.push(["status",{}]);
-methods.push(["createIndex",{index:"test"}]);
-methods.push(["deleteIndex",{index:"test"}]);
-methods.push(["getMappings",{indices:["foo","test"]}]);
-methods.push(["flush",{indices:"test", refresh:"true"}]);
-methods.push(["refresh",{indices:"test"}]);
-methods.push(["snapshot",{}]);
-methods.push(["optimize",{refresh:"true", flush:"true"}]);
-methods.push(["updateSettings",{number_of_replicas:4}]);
+methods.push(["adminClusterState",{}]);
+methods.push(["adminClusterHealth",{indices:["test","foo"], timeout:"30s"}]);
+methods.push(["adminClusterNodeInfo",{nodes:["_master"]}]);
+methods.push(["adminClusterNodeStats",{nodes:["_local"]}]);
+methods.push(["adminClusterNodeShutdown",{"nodes":["_local"], "delay":"5s"}]);
+methods.push(["adminClusterNodeRestart",{nodes:["_local"]}]);
+methods.push(["adminIndicesStatus",{}]);
+methods.push(["adminIndicesCreate",{index:"test"}]);
+methods.push(["adminIndicesDelete",{index:"test"}]);
+methods.push(["adminIndicesMappingGet",{indices:["foo","test"]}]);
+methods.push(["adminIndicesFlush",{indices:"test", refresh:"true"}]);
+methods.push(["adminIndicesRefresh",{indices:"test"}]);
+methods.push(["adminIndicesGatewaySnapshot",{}]);
+methods.push(["adminIndicesOptimize",{refresh:"true", flush:"true"}]);
+methods.push(["adminIndicesSettings",{number_of_replicas:4}]);
 methods.push(["deleteByQuery",{indices:"test", queryDSL: { term: { _id: 1}}}]);
 
 function populateMethods() {

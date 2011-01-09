@@ -29,6 +29,7 @@ ElasticSearch.prototype.defaults = {
     }
 }
 
+// defnie HTTP method names
 ElasticSearch.prototype.method = {
     get    : "GET",
     post   : "POST",
@@ -48,7 +49,7 @@ ElasticSearch.prototype.method = {
         settings.filter_blocks
         settings.callback   function to be called once the ajax is finished
 */
-ElasticSearch.prototype.clusterState = function(settings) {
+ElasticSearch.prototype.adminClusterState = function(settings) {
     var settings = this.ensure(settings);
     var path = "_cluster/state";
     var params = [];
@@ -68,7 +69,7 @@ ElasticSearch.prototype.clusterState = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.clusterHealth = function(settings) {
+ElasticSearch.prototype.adminClusterHealth = function(settings) {
     var settings = this.ensure(settings);
     var path = "_cluster/health";
     var params = [];
@@ -89,7 +90,7 @@ ElasticSearch.prototype.clusterHealth = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.clusterNodesInfo = function(settings) {
+ElasticSearch.prototype.adminClusterNodeInfo = function(settings) {
     var settings = this.ensure(settings)
     var path = "_cluster/nodes";
     if (settings.nodes) path += "/"+settings.nodes;
@@ -103,7 +104,7 @@ ElasticSearch.prototype.clusterNodesInfo = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.clusterNodesStats = function(settings) {
+ElasticSearch.prototype.adminClusterNodeStats = function(settings) {
     var settings = this.ensure(settings)
     var path = "_cluster/nodes";
     if (settings.nodes) path += "/"+settings.nodes;
@@ -118,7 +119,7 @@ ElasticSearch.prototype.clusterNodesStats = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
+ElasticSearch.prototype.adminClusterNodeShutdown = function(settings) {
     var settings = this.ensure(settings)
     var path = "_cluster/nodes";
     path += "/"+ (settings.nodes || "_all") + "/_shutdown";
@@ -133,7 +134,7 @@ ElasticSearch.prototype.clusterNodesShutdown = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.clusterNodesRestart = function(settings) {
+ElasticSearch.prototype.adminClusterNodeRestart = function(settings) {
     var settings = this.ensure(settings)
     var path = "_cluster/nodes";
     path += "/"+ (settings.nodes || "_all") + "/_restart";
@@ -150,7 +151,7 @@ ElasticSearch.prototype.clusterNodesRestart = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.status = function(settings) {
+ElasticSearch.prototype.adminIndicesStatus = function(settings) {
     var settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_status";
     with(this) {
@@ -163,7 +164,7 @@ ElasticSearch.prototype.status = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.createIndex = function(settings) {
+ElasticSearch.prototype.adminIndicesCreate = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
@@ -182,7 +183,7 @@ ElasticSearch.prototype.createIndex = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.deleteIndex = function(settings) {
+ElasticSearch.prototype.adminIndicesDelete = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
@@ -196,7 +197,7 @@ ElasticSearch.prototype.deleteIndex = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.getMappings = function(settings) {
+ElasticSearch.prototype.adminIndicesMappingGet = function(settings) {
     var settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/";
     if (settings.types) path += settings.types + "/";
@@ -206,7 +207,40 @@ ElasticSearch.prototype.getMappings = function(settings) {
     }
 }
 
-ElasticSearch.prototype.flush = function(settings) {
+/*
+    params:
+        -optional-
+        settings.callback   function to be called once the ajax is finished
+ */
+ElasticSearch.prototype.adminIndicesMappingPut = function(settings) {
+    var settings = this.ensure(settings);
+    if (!settings.type) { throw("An index type must be provided."); }
+    if (!settings.mapping) { throw("No mapping request data provided."); }
+    var path = (settings.indices || "_all") + settings.type + "/_mapping";
+    if (settings.ignore_conflicts) { path += "?ignore_conflicts=" + settings.ignore_conflicts; }
+    settings.stringifyData = JSON.stringify(settings.mapping);
+    with(this) {
+        execute(method.post, path, settings);
+    }
+}
+
+/*
+    params:
+        settings.index      index name
+        settings.type       index type
+        -optional-
+        settings.callback
+ */
+ElasticSearch.prototype.adminIndicesMappingDelete = function(settings) {
+    var settings = this.ensure(settings);
+    if (!settings.type) { throw("An index type must be provided."); }
+    if (!settings.index) { throw("And index name must be provided."); }
+    with(this) {
+        execute(method.delete, [settings.index,settings.type,"_mapping"].join("/"), settings);
+    }
+}
+
+ElasticSearch.prototype.adminIndicesFlush = function(settings) {
     var settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_flush";
     if (settings.refresh && settings.refresh === true) path += "?refresh=true";
@@ -220,7 +254,7 @@ ElasticSearch.prototype.flush = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.refresh = function(settings) {
+ElasticSearch.prototype.adminIndicesRefresh = function(settings) {
     var settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_refresh";
     with(this) {
@@ -228,7 +262,7 @@ ElasticSearch.prototype.refresh = function(settings) {
     }
 }
 
-ElasticSearch.prototype.snapshot = function(settings) {
+ElasticSearch.prototype.adminIndicesGatewaySnapshot = function(settings) {
     var settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_gateway/snapshot";
     with(this) {
@@ -241,25 +275,7 @@ ElasticSearch.prototype.snapshot = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.putMapping = function(settings) {
-    var settings = this.ensure(settings);
-    if (!settings.type) { throw("An index type must be provided."); }
-    if (!settings.mapping) { throw("No mapping request data provided."); }
-    var path = (settings.indices || "_all") + settings.type + "/_mapping";
-    if (settings.ignore_conflicts) { path += "?ignore_conflicts=" + settings.ignore_conflicts; }
-    settings.stringifyData = JSON.stringify(settings.mapping);
-    with(this) {
-        execute(method.post, path, settings);
-    }
-    
-}
-
-/*
-    params:
-        -optional-
-        settings.callback   function to be called once the ajax is finished
- */
-ElasticSearch.prototype.aliases = function(settings) {
+ElasticSearch.prototype.adminIndicesAliases = function(settings) {
     var settings = this.ensure(settings);
     if (settings.aliases) {
         settings.stringifyData = JSON.stringify(settings.aliases);
@@ -277,7 +293,7 @@ ElasticSearch.prototype.aliases = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.updateSettings = function(settings) {
+ElasticSearch.prototype.adminIndicesSettings = function(settings) {
     var settings = this.ensure(settings);
     if (settings.number_of_replicas) {
         var path = (settings.indices || "_all") + "/_settings";
@@ -297,7 +313,7 @@ ElasticSearch.prototype.updateSettings = function(settings) {
         -optional-
         settings.callback
  */
-ElasticSearch.prototype.open = function(settings) {
+ElasticSearch.prototype.adminIndicesOpen = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided."); }
     with(this) {
@@ -311,7 +327,7 @@ ElasticSearch.prototype.open = function(settings) {
         -optional-
         settings.callback
  */
-ElasticSearch.prototype.close = function(settings) {
+ElasticSearch.prototype.adminIndicesClose = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided."); }
     with(this) {
@@ -327,7 +343,7 @@ ElasticSearch.prototype.close = function(settings) {
         settings.analyzer
         settings.format     text / detailed [default]
  */
-ElasticSearch.prototype.analyze = function(settings) {
+ElasticSearch.prototype.adminIndicesAnalyze = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.index) { throw("Index name must be provided."); }
     if (!settings.text) { throw("Text to analyze must be provided."); }
@@ -349,7 +365,7 @@ ElasticSearch.prototype.analyze = function(settings) {
         -optional-
         settings.callback
  */
-ElasticSearch.prototype.putTemplate = function(settings) {
+ElasticSearch.prototype.adminIndicesTemplatePut = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.template_id) { throw("Index template_id must be provided."); }
     if (!settings.template_json) { throw("No template json provided."); }
@@ -366,7 +382,7 @@ ElasticSearch.prototype.putTemplate = function(settings) {
         -optional-
         settings.callback
  */
-ElasticSearch.prototype.getTemplate = function(settings) {
+ElasticSearch.prototype.adminIndicesTemplateGet = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.template_id) { throw("Index template_id must be provided."); }
     var path = "_template/"+settings.template_id;
@@ -381,7 +397,7 @@ ElasticSearch.prototype.getTemplate = function(settings) {
         -optional-
         settings.callback
  */
-ElasticSearch.prototype.deleteTemplate = function(settings) {
+ElasticSearch.prototype.adminIndicesTemplateDelete = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.template_id) { throw("Index template_id must be provided."); }
     var path = "_template/"+settings.template_id;
@@ -395,7 +411,7 @@ ElasticSearch.prototype.deleteTemplate = function(settings) {
         -optional-
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.optimize = function(settings) {
+ElasticSearch.prototype.adminIndicesOptimize = function(settings) {
     var settings = this.ensure(settings);
     var path = (settings.indices || "_all") + "/_optimize";
     var params = []
@@ -611,19 +627,19 @@ ElasticSearch.prototype.bulk = function(settings) {
 
 /*
     TODO _mlt
-*/
+
 ElasticSearch.prototype.mlt = function(settings) {
 
 }
-
+ */
 /*
     TODO _river
     Note it is pluggable, thus does not have to be installed!
- */
+
 ElasticSearch.prototype.river = function(settings) {
 
 }
-
+ */
 /*
     Allows for low-level adhoc custom requests.    
     params:
