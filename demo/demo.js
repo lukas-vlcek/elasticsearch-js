@@ -23,7 +23,7 @@ methods.push(["log","Logging message"]);
 methods.push(["search",{indices:["_all"], types:["mail"], queryDSL:{ size: 1, from: 0, query: { match_all: {}} }}]);
 methods.push(["count",{queryDSL:{ match_all: {}} }]);
 methods.push(["get",{index:"test",type:"tweet",id:1}]);
-methods.push(["del",{index:"test",type:"tweet",id:1,replication:"sync"}]);
+methods.push(["delete",{index:"test",type:"tweet",id:1,replication:"sync"}]);
 methods.push(["clusterState",{}]);
 methods.push(["clusterHealth",{indices:["test","foo"], timeout:"30s"}]);
 methods.push(["clusterNodesInfo",{nodes:["_master"]}]);
@@ -39,7 +39,7 @@ methods.push(["refresh",{indices:"test"}]);
 methods.push(["snapshot",{}]);
 methods.push(["optimize",{refresh:"true", flush:"true"}]);
 methods.push(["updateSettings",{number_of_replicas:4}]);
-methods.push(["delByQuery",{indices:"test", queryDSL: { term: { _id: 1}}}]);
+methods.push(["deleteByQuery",{indices:"test", queryDSL: { term: { _id: 1}}}]);
 
 function populateMethods() {
     var methodList = $("#methods");
@@ -60,11 +60,11 @@ function populateMethods() {
 function getES() {
     var es = new ElasticSearch(
         {
-            debug: $("#logging").attr("checked"),
-            host: $("#host").val(),
-            port: $("#port").val()
+            debug    : $("#logging").attr("checked"),
+            host     : $("#host").val(),
+            port     : $("#port").val(),
+            callback : function(data, xhr) { es.log(data); output.empty().append("<p>"+JSON.stringify(data, null, '  '))+"</p>"}
         });
-    es.defaults.callback = function(data, xhr) { es.log(data); output.empty().append("<p>"+JSON.stringify(data, null, '  '))+"</p>"};
     return es;
 }
 
