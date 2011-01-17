@@ -18,10 +18,10 @@
 <html>
 <head>
     <title>Simple query shooter</title>
-    <script type="text/javascript" src="libs/jquery-1.4.3.min.js"></script>
-    <script type="text/javascript" src="libs/json2.js"></script>
-    <script type="text/javascript" src="../js/elasticsearch.js"></script>
-    <script type="text/javascript" src="../js/elasticsearch-jquery.js"></script>
+    <script type="text/javascript" src="../libs/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="../libs/json2.js"></script>
+    <script type="text/javascript" src="../../js/elasticsearch.js"></script>
+    <script type="text/javascript" src="../../js/elasticsearch-jquery.js"></script>
 </head>
 <body>
 
@@ -39,6 +39,7 @@
             <input value="execute" id="go" type="button">
         </div>
         <textarea rows="15" cols="60" id="query">{ "query" : { "match_all" : {}}}</textarea>
+        <p>Note: this demo is hardcoded to connect to localhost:9200</p>
     </div>
 
     <div id="output" style="white-space: pre; font-family: monospace; font-size: 0.8em; float:left;"></div>
