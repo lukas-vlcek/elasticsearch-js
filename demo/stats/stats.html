@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<!--
+// This file is provided to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file
+// except in compliance with the License.  You may obtain
+// a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+-->
+<html>
+<head>
+    <title>ElasticSearch-js: Node Stats</title>
+    <script type="text/javascript" src="../libs/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="../libs/json2.js"></script>
+    <script type="text/javascript" src="../libs/highcharts.js"></script>
+    <script type="text/javascript" src="../../js/elasticsearch.js"></script>
+    <script type="text/javascript" src="../../js/elasticsearch-jquery.js"></script>
+    <script type="text/javascript" src="stats.js"></script>
+    <style type="text/css">
+        body { font-family: sans-serif; color: #304560; }
+        .section { font-weight: bold; }
+        .disconnected { font-style: italic; }
+    </style>
+</head>
+<body>
+    <form id="form" action="#">
+        <input id="host" type="text" value="localhost"/>
+        <input id="port" type="text" value="9200" size="5"/>
+        <input type="button" id="go" value="GO!"/>
+        &nbsp;&nbsp;
+        Refresh interval
+        <select id="interval">
+            <option value="1000">1 sec</option>
+            <option value="1500">1.5 sec</option>
+            <option value="2000">2 sec</option>
+            <option value="2500">2.5 sec</option>
+            <option value="3000">3 sec</option>
+            <option value="5000">5 sec</option>
+            <option value="10000">10 sec</option>
+            <option value="30000">30 sec</option>
+        </select>
+        &nbsp;&nbsp;
+        Charts window size
+        <select id="winsize">
+            <option value="-1">no limit</option>
+            <option value=  "30000">30 sec</option>
+            <option value=  "60000">1 min</option>
+            <option value= "180000">3 min</option>
+            <option value= "300000">5 min</option>
+            <option value= "900000">15 min</option>
+            <option value="1800000">30 min</option>
+            <option value="3600000">1 hour</option>
+        </select>
+    </form>
+
+    <table>
+        <tr>
+            <td colspan="3"><span class="section">JVM uptime:</span> <span id="jvm-uptime" class="fading"></span></td>
+        </tr>
+        <tr>
+            <td><div id="jvm-threads" style="width: 700px; height: 350px"></div></td>
+            <td><div id="jvm-mem-heap" style="width: 450px; height: 350px"></div></td>
+            <td><div id="jvm-mem-non-heap" style="width: 450px; height: 350px"></div></td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td colspan="3"><span class="section">OS uptime:</span> <span id="os-uptime" class="fading"></span></td>
+        </tr>
+        <tr>
+            <td><div id="os-cpu" style="width: 700px; height: 350px"></div></td>
+            <td><div id="os-mem" style="width: 450px; height: 350px"></div></td>
+            <td><div id="os-swap" style="width: 450px; height: 350px"></div></td>
+        </tr>
+    </table>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+h1. System Statistics Monitoring
+
+This demo shows how to build simple system monitor, it is a one page with some live charts (JVM, OS, ...):
+
+ * provides charts for:
+ ** JVM threads
+ ** JVM Heap and non-heap memory
+ ** OS CPU(%)
+ ** OS Swap
+
+On top of that you can set refresh interval and time window for the charts (no limits, 1 minute, 5 minutes, ... etc)
+
+It is work in progress and has some hardcoded limitations:
+ * it shows statistics of the first node found in the response (does not allow to choose node)
+ * does not implement chart for OS memory
+
