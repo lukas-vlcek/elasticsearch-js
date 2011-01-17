@@ -34,9 +34,9 @@ The following is a simple example:
 
             var es = new ElasticSearch({callback: displayJSON}); // by default connecting to localhost:9200
 
-            $("#state").click(function(){ es.clusterState() });
-            $("#health").click(function(){ es.clusterHealth({level: "shards"}) });
-            $("#nodes_info").click(function(){ es.clusterNodesInfo() });
+            $("#state").click(function(){ es.adminClusterState() });
+            $("#health").click(function(){ es.adminClusterHealth({level: "shards"}) });
+            $("#nodes_info").click(function(){ es.adminClusterNodeInfo() });
 
         </script>
     </body>
