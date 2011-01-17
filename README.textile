@@ -44,6 +44,6 @@ The following is a simple example:
 </code>
 </pre>
 
-Source code of this example can be found here: "simple.js":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/simple.html.
+Source code of this example can be found here: "simple.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/simple.html.
 
 For more examples check "demo":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo folder.

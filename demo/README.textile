@@ -8,19 +8,12 @@ h2. System Statistics Monitoring
 
 h2. Demo
 
-This "demo":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo comes with simple html page that allows
-for execution of individual built-in methods in JavaScript client (not all of the methods are exposed right now but many).
-This demo is used mainly during development and is probably not interesting to users a lot.
+This "demo":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/demo comes with simple html page that allows for execution of individual built-in methods in JavaScript client (not all of the methods are exposed right now but many). This demo is used mainly during development and is probably not interesting to users a lot.
 
 h2. Query
 
-ES client provides a lot of built-in methods and the goal is to cover REST API completely but it can happen that you need
-to issue a specific request or simply there is a new API that is not supported by JS client yet. In this case it can be
-handy to use @request(method, path, data, callback)@ method.
-Check "query":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/query demo for simple demonstration about
-how you can do it.
+ES client provides a lot of built-in methods and the goal is to cover REST API completely but it can happen that you need to issue a specific request or simply there is a new API that is not supported by JS client yet. In this case it can be handy to use @request(method, path, data, callback)@ method. Check "query":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/query demo for simple demonstration about how you can do it.
 
 h2. Simple
 
-"simple.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/simple.html is very basic demonstration of
-how ES client can be used (this demo is referenced from the main page).
+"simple.html":http://github.com/lukas-vlcek/elasticsearch-js/blob/master/demo/simple.html is very basic demonstration of how ES client can be used (this demo is referenced from the main page).
