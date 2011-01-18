@@ -13,7 +13,9 @@
 // under the License.
 
 var // html elements
-        es,timer, form, button, host, port, interval, jvmUptime, osUptime,
+        es,timer, form, button, host, port, interval, jvmUptime, osUptime, clusterNameSpan, nodesSpan, 
+    // variables
+        clusterName, selectedNodeName,
     // charts
         chjvmthreads, chjvmmemheap, chjvmmemnonheap,
         choscpu, chosswap = undefined;
@@ -21,6 +23,7 @@ var connected = false;
 var firstPoint = true;
 var winsize = -1;
 var charts = [];
+var nodes = {};
 
 $(document).ready(function() {
     form = $("#form");
@@ -30,6 +33,9 @@ $(document).ready(function() {
     interval = $("#interval");
     jvmUptime = $("#jvm-uptime");
     osUptime = $("#os-uptime");
+    clusterNameSpan = $("#cluster-name");
+    clusterName = clusterNameSpan.text();
+    nodesSpan = $("#nodes");
 
     $(form).bind('submit', function() {
         return false;
@@ -110,15 +116,76 @@ var fadeAll = function() {
 }
 
 var stats = function stats(data) {
-    var firstnode = undefined;
-    for (node in data.nodes) {
-        if (!firstnode) firstnode = data.nodes[node];
-    }
-    if (firstnode) {
-//        console.log(firstnode);
 
-        var jvm = firstnode.jvm;
-        var os = firstnode.os;
+//    console.log(data);
+
+    if (data) {
+        if(data.cluster_name && clusterName != data.cluster_name) {
+            clusterName = data.cluster_name;
+            clusterNameSpan.text(clusterName);
+        }
+        if (data.nodes) {
+            var nodesChanged = false;
+            for (var node in nodes) {
+                // node removed?
+                if (!data.nodes[node]) {
+                    if (selectedNodeName && nodes[node] == selectedNodeName) {
+                        selectedNodeName = undefined;
+                        cleanCharts(charts);
+                        // TODO stop timer ?
+                    }
+                    delete nodes[node];
+                    nodesChanged = true;
+                }
+            }
+            for (var node in data.nodes) {
+                // new node?
+                if (!nodes[node]) {
+                    nodes[node] = data.nodes[node].name;
+                    nodesChanged = true;
+                }
+            }
+            if (nodesChanged) {
+                //redraw nodes
+                var _nodes = [];
+                for (var n in nodes) _nodes.push(nodes[n]);
+                _nodes.sort();                
+                $(nodesSpan).empty();
+                if (selectedNodeName == undefined && _nodes.length > 0) selectedNodeName = _nodes[0];
+                $.each(_nodes, function(index, value) {
+                    var node =  $(document.createElement("span")).attr("class","node").append(value);
+                    if (value == selectedNodeName) { $(node).addClass("selectedNode"); }
+                    $(node).click(
+                        function(){
+                            // new node selected
+                            if (selectedNodeName != $(this).text()) {
+                                selectedNodeName = $(this).text();
+                                $.each(nodesSpan.children(),
+                                    function(id, s){
+                                      if (selectedNodeName == $(s).text()) $(s).addClass("selectedNode")
+                                      else $(s).removeClass("selectedNode");
+                                    }
+                                );
+                                cleanCharts(charts);
+                            }
+                        }
+                    );
+                    $(nodesSpan).append(node);
+                });
+            }
+        }
+    }
+
+
+    var selectedNode = undefined;
+    for (node in data.nodes) {
+        if (!selectedNode && data.nodes[node].name == selectedNodeName) selectedNode = data.nodes[node];
+    }
+    if (selectedNode) {
+//        console.log(selectedNode);
+
+        var jvm = selectedNode.jvm;
+        var os = selectedNode.os;
 
         // insert blank space into charts
         if (firstPoint) {
@@ -171,6 +238,15 @@ var stats = function stats(data) {
         // redraw all charts
         redrawCharts(charts);
 
+    }
+}
+
+var cleanCharts = function(chartsArray) {
+    for (var i = 0; i < chartsArray.length; i++) {
+        for (var s = 0; s < chartsArray[i].series.length; s++) {
+            var series = chartsArray[i].series[s];
+            series.setData([],true);
+        }
     }
 }
 

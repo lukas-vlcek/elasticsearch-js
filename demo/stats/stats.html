@@ -28,6 +28,34 @@
         body { font-family: sans-serif; color: #304560; }
         .section { font-weight: bold; }
         .disconnected { font-style: italic; }
+        .clusterName {
+            font-size: 80%;
+            border: 1px #d3d3d3 solid;
+            margin: 5px 10px 5px 5px;
+            padding: 2px 4px 2px 4px;
+            color: #483d8b;
+            background-color: #f5f5dc;
+            font-weight: bold;
+        }
+        .node {
+            font-size: 80%;
+            border: 1px #d3d3d3 solid;
+            margin: 5px 2px 5px 6px;
+            padding: 2px 4px 2px 4px;
+            color: #483d8b;
+            background-color: #f5f5dc;
+            cursor: pointer;
+        }
+        .selectedNode {
+            background-color: #ffff55;
+            font-weight: bold;
+            cursor: default;
+        }
+        .separator {
+            width: 100%;
+            border-bottom: 1px #d9d9d9 solid;
+            margin: 4px 0 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -55,12 +83,22 @@
             <option value=  "60000">1 min</option>
             <option value= "180000">3 min</option>
             <option value= "300000">5 min</option>
+            <option value= "600000">10 min</option>
             <option value= "900000">15 min</option>
             <option value="1800000">30 min</option>
             <option value="3600000">1 hour</option>
         </select>
     </form>
 
+    <table>
+        <tr>
+            <td>
+                Cluster:<span id="cluster-name" class="clusterName"></span>
+            </td>
+            <td>Nodes:<span id="nodes"></span></td>
+        </tr>
+    </table>
+    <div class="separator"></div>
     <table>
         <tr>
             <td colspan="3"><span class="section">JVM uptime:</span> <span id="jvm-uptime" class="fading"></span></td>
