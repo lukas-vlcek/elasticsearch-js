@@ -8,9 +8,10 @@ This demo shows how to build simple system monitor, it is a one page with some l
  ** OS CPU(%)
  ** OS Swap
 
+User can switch between nodes in the cluster, new nodes are added and old nodes are removed automatically on the fly.
+
 On top of that you can set refresh interval and time window for the charts (no limits, 1 minute, 5 minutes, ... etc)
 
 It is work in progress and has some hardcoded limitations:
- * it shows statistics of the first node found in the response (does not allow to choose node)
  * does not implement chart for OS memory
 
