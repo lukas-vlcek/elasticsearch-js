@@ -88,6 +88,7 @@ ElasticSearch.prototype.adminClusterHealth = function(settings) {
 /*
     params:
         -optional-
+        settings.nodes      array of node ids
         settings.callback   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.adminClusterNodeInfo = function(settings) {
@@ -102,6 +103,7 @@ ElasticSearch.prototype.adminClusterNodeInfo = function(settings) {
 /*
     params:
         -optional-
+        settings.nodes      array of node ids
         settings.callback   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.adminClusterNodeStats = function(settings) {
@@ -117,6 +119,7 @@ ElasticSearch.prototype.adminClusterNodeStats = function(settings) {
 /*
     params:
         -optional-
+        settings.nodes      array of node ids
         settings.callback   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.adminClusterNodeShutdown = function(settings) {
@@ -132,6 +135,7 @@ ElasticSearch.prototype.adminClusterNodeShutdown = function(settings) {
 /*
     params:
         -optional-
+        settings.nodes      array of node ids
         settings.callback   function to be called once the ajax is finished
  */
 ElasticSearch.prototype.adminClusterNodeRestart = function(settings) {
