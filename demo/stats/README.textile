@@ -1,8 +1,12 @@
 h1. System Statistics Monitoring
 
-This demo shows how to build simple system monitor, it is a one page with some live charts (JVM, OS, ...):
+This demo shows how to build simple system monitor, it is a one page with some live charts (JVM, OS, ...) and some info about cluster nodes:
 
- * provides charts for:
+ * provide info about:
+ ** JVM details
+ ** OS details
+
+ * provides charts about:
  ** JVM threads
  ** JVM Heap and non-heap memory
  ** OS CPU(%)
@@ -14,5 +18,5 @@ On top of that it is possible to set refresh interval and time window for the ch
 
 h3. TODO
 
- * implement more charts
+ * implement chart for OS memory consumption
 

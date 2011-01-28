@@ -1,0 +1,3 @@
+h1. Events Module
+
+This is _work_in_progress_, once done it will allow to register custom handlers for some of predefined events and writing custom events as well.
