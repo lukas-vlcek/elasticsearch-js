@@ -13,13 +13,21 @@
 // under the License.
 
 ElasticSearch.prototype.events = {
+    /*
+        If new node is added into the cluster or any node is removed or master node is changed then
+        the listener functions are executed with the following parameters:
+
+        function( [newNodeId-1, newNodeId-2,...], [removedNodeId-1, removedNodeId-2], newMasterNodeId )
+
+     */
     nodesAddedOrRemoved : {
         refreshInterval : 3000,
         timer : undefined,
         internal : {
             listeners : [],
             state : {
-                nodesId:[]
+                nodesId : [],
+                masterNodeId : undefined
             },
             check: function(es){
                 var _this = this;
@@ -29,6 +37,7 @@ ElasticSearch.prototype.events = {
                         var _actualNodesId = [];
                         var addedNodes = [];
                         var removedNodes = [];
+                        var newMasterNode = undefined;
 
                         // check for added nodes first
                         for (var nodeId in data.nodes) {
@@ -44,11 +53,16 @@ ElasticSearch.prototype.events = {
                             if (idx == -1) removedNodes.push(nodeId);
                         }
 
-                        if (addedNodes.length > 0 || removedNodes.length > 0) {
+                        if (data.master_node && data.master_node != _this.state.masterNodeId) {
+                            _this.state.masterNodeId = data.master_node;
+                            newMasterNode = data.master_node;
+                        }
+
+                        if (addedNodes.length > 0 || removedNodes.length > 0 || newMasterNode != undefined) {
                             _this.state.nodesId = _actualNodesId.slice(0);
                             // call listeners
                             for (var l = 0; l < _this.listeners.length; l++) {
-                                _this.listeners[l].apply(null,[addedNodes.slice(0), removedNodes.slice(0)]);
+                                _this.listeners[l].apply(null,[addedNodes.slice(0), removedNodes.slice(0), newMasterNode]);
                             }
                         }
                     } else {

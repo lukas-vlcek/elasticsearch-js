@@ -24,7 +24,7 @@ $(document).ready(function() {
     startCheckingNodes();
 });
 
-function something_with_nodes_has_changed(addedNodes, removedNodes) {
+function something_with_nodes_has_changed(addedNodes, removedNodes, newMaster) {
 
     var currentTime = getFormatedDate(new Date());
 
@@ -39,6 +39,12 @@ function something_with_nodes_has_changed(addedNodes, removedNodes) {
         $(d).append("["+currentTime+"] Some nodes were removed: ").append(removedNodes.join(", "));
         $(output).append(d);
         console.log("Removed nodes: ", removedNodes);
+    }
+    if (newMaster != undefined) {
+        var d = document.createElement("div");
+        $(d).append("["+currentTime+"] New master node found: ").append(newMaster);
+        $(output).append(d);
+        console.log("New master: ", newMaster);
     }
 }
 
