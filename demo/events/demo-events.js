@@ -12,40 +12,52 @@
 // specific language governing permissions and limitations
 // under the License.
 
-var output = undefined;
+/*
+    This demo shows how to use events module.
+ */
+
+var output, es = undefined;
 
 $(document).ready(function() {
-    doSomething();
     output = $("#output");
+    es = new ElasticSearch({debug:true});
+    startCheckingNodes();
 });
 
-function something_with_nodes_was_changed(addedNodes, removedNodes) {
+function something_with_nodes_has_changed(addedNodes, removedNodes) {
 
-    var currentTime = new Date();
-    var seconds = currentTime.getSeconds();
-    var minutes = currentTime.getMinutes();
-    var hours = currentTime.getHours();
-    var month = currentTime.getMonth() + 1;
-    var day = currentTime.getDate();
-    var year = currentTime.getFullYear();
+    var currentTime = getFormatedDate(new Date());
 
     if (addedNodes && addedNodes.length > 0) {
         var d = document.createElement("div");
-        $(d).append("["+month+"/"+day+"/"+year+" "+hours+":"+minutes+":"+seconds+"] New nodes found: ").append(addedNodes.join(", "));
+        $(d).append("["+currentTime+"] New nodes found: ").append(addedNodes.join(", "));
         $(output).append(d);
         console.log("Added nodes: ", addedNodes);
     }
     if (removedNodes && removedNodes.length > 0) {
         var d = document.createElement("div");
-        $(d).append("["+month+"/"+day+"/"+year+" "+hours+":"+minutes+":"+seconds+"] Some nodes were removed: ").append(removedNodes.join(", "));
+        $(d).append("["+currentTime+"] Some nodes were removed: ").append(removedNodes.join(", "));
         $(output).append(d);
         console.log("Removed nodes: ", removedNodes);
     }
 }
 
-function doSomething() {
-    var es = new ElasticSearch({debug:true});
+function startCheckingNodes() {
 
 //    es.events.nodesAddedOrRemoved.internal.check(es);
-    es.addEventListener("nodesAddedOrRemoved", something_with_nodes_was_changed);
+    es.addEventListener("nodesAddedOrRemoved", something_with_nodes_has_changed);
+}
+
+function getFormatedDate(date) {
+    var seconds = lpad(date.getSeconds());
+    var minutes = lpad(date.getMinutes());
+    var hours = lpad(date.getHours());
+    var month = lpad(date.getMonth() + 1);
+    var day = lpad(date.getDate());
+    var year = date.getFullYear();
+    return year+"/"+month+"/"+day+" "+hours+":"+minutes+":"+seconds;
+}
+
+function lpad(value) {
+    return ( value < 10 ? "0"+value : value);
 }
