@@ -68,7 +68,7 @@
         <select id="interval">
             <option value="1000">1 sec</option>
             <option value="1500">1.5 sec</option>
-            <option value="2000">2 sec</option>
+            <option value="2000" selected="selected">2 sec</option>
             <option value="2500">2.5 sec</option>
             <option value="3000">3 sec</option>
             <option value="5000">5 sec</option>
@@ -84,7 +84,7 @@
             <option value= "180000">3 min</option>
             <option value= "300000">5 min</option>
             <option value= "600000">10 min</option>
-            <option value= "900000">15 min</option>
+            <option value= "900000" selected="selected">15 min</option>
             <option value="1800000">30 min</option>
             <option value="3600000">1 hour</option>
         </select>
@@ -101,25 +101,74 @@
     <div class="separator"></div>
     <table>
         <tr>
-            <td colspan="3"><span class="section">JVM uptime:</span> <span id="jvm-uptime" class="fading"></span></td>
+            <td colspan="4"><span class="section">JVM uptime:</span> <span id="jvm-uptime" class="fading"></span></td>
         </tr>
         <tr>
-            <td><div id="jvm-threads" style="width: 700px; height: 350px"></div></td>
+            <td style="vertical-align: text-top;">
+                <div style="width: 350px">
+                    <table>
+                        <thead>
+                            <tr><th colspan="2">JVM</th></tr>
+                        </thead>
+                        <tbody id="jvm-table"/>
+                    </table>
+                </div>
+                <div style="width: 350px">
+                    <table>
+                        <thead>
+                            <tr><th colspan="3">GC</th></tr>
+                            <tr><th>Type:</th><th>Count:</th><th>Time:</th></tr>
+                        </thead>
+                        <tbody id="jvm-gc-table"/>
+                    </table>
+                </div>
+            </td>
+            <td><div id="jvm-threads" style="width: 640px; height: 350px"></div></td>
             <td><div id="jvm-mem-heap" style="width: 450px; height: 350px"></div></td>
             <td><div id="jvm-mem-non-heap" style="width: 450px; height: 350px"></div></td>
         </tr>
     </table>
 
+    <div class="separator"></div>
+
     <table>
         <tr>
-            <td colspan="3"><span class="section">OS uptime:</span> <span id="os-uptime" class="fading"></span></td>
+            <td colspan="4"><span class="section">OS uptime:</span> <span id="os-uptime" class="fading"></span></td>
         </tr>
         <tr>
-            <td><div id="os-cpu" style="width: 700px; height: 350px"></div></td>
+            <td style="vertical-align: text-top;">
+                <div style="width: 350px">
+                    <table>
+                        <thead>
+                            <tr><th colspan="2">CPU</th></tr>
+                        </thead>
+                        <tbody id="os-cpu-table"/>
+                    </table>
+                </div>
+                <div style="width: 350px">
+                    <table>
+                        <thead>
+                            <tr><th colspan="2">Network</th></tr>
+                        </thead>
+                        <tbody id="network-table"/>
+                    </table>
+                </div>
+                <div style="width: 350px">
+                    <table>
+                        <thead>
+                            <tr><th colspan="2">Transport</th></tr>
+                        </thead>
+                        <tbody id="transport-table"/>
+                    </table>
+                </div>
+            </td>
+            <td><div id="os-cpu" style="width: 640px; height: 350px"></div></td>
             <td><div id="os-mem" style="width: 450px; height: 350px"></div></td>
             <td><div id="os-swap" style="width: 450px; height: 350px"></div></td>
         </tr>
     </table>
+
+    <div class="separator"></div>
 
 </body>
 </html>

@@ -13,7 +13,8 @@
 // under the License.
 
 var // html elements
-        es,timer, form, button, host, port, interval, jvmUptime, osUptime, clusterNameSpan, nodesSpan, 
+        es, timer, form, button, host, port, interval, jvmUptime, osUptime, clusterNameSpan, nodesSpan,
+        jvmGcTable, osCpuTable, transportTable, networkTable, jvmTable,
     // variables
         clusterName, selectedNodeName,
     // charts
@@ -26,6 +27,8 @@ var charts = [];
 var nodes = {};
 
 $(document).ready(function() {
+    
+    // locate html elements and keep pointers
     form = $("#form");
     button = $("#go");
     host = $("#host");
@@ -34,9 +37,17 @@ $(document).ready(function() {
     jvmUptime = $("#jvm-uptime");
     osUptime = $("#os-uptime");
     clusterNameSpan = $("#cluster-name");
-    clusterName = clusterNameSpan.text();
     nodesSpan = $("#nodes");
+    jvmGcTable = $("#jvm-gc-table");
+    osCpuTable = $("#os-cpu-table");
+    transportTable = $("#transport-table");
+    networkTable = $("#network-table");
+    jvmTable = $("#jvm-table");
 
+    // initialize variables
+    clusterName = clusterNameSpan.text();
+
+    // bind GUI actions
     $(form).bind('submit', function() {
         return false;
     });
@@ -70,6 +81,13 @@ $(document).ready(function() {
         }
     });
 
+    $("#winsize").change(function() {
+        winsize = $(this).attr('value');
+        shrinkCharts(charts);
+        redrawCharts(charts);
+    });
+
+    // build all charts
     charts = [
         // jvm charts
         chjvmthreads = buildChJvmThreads('jvm-threads'),
@@ -79,32 +97,29 @@ $(document).ready(function() {
         choscpu = buildChOsCpu("os-cpu"),
         chosswap = buildChOsSwap("os-swap",'Swap'),
     ]
-
-    $("#winsize").change(function() {
-        winsize = $(this).attr('value');
-        shrinkCharts(charts);
-        redrawCharts(charts);
-    });
 });
 
 var setupInterval = function(delay) {
     clearInterval(timer);
-    timer = setInterval("es.adminClusterNodeStats({callback:function(data, xhr){stats(data)}})", delay);
+    var _function = function(){es.adminClusterNodeStats({callback:function(data, xhr){stats(data)}})};
+    _function(); // execute the _function right now before the first delay interval elapses
+    timer = setInterval(_function, delay);
 }
 
 var connect = function connect(hostVal, portVal) {
     es = new ElasticSearch({host:hostVal, port:portVal});
-    es.adminClusterHealth(
-    {callback:
+    es.adminClusterHealth({
+        level:"shard",
+        callback:
             function(data, xhr) {
-                //                console.log(data);
+//                console.log(data);
                 setupInterval($("#interval option:selected").val());
                 connected = true;
                 $(host).attr("disabled", "true");
                 $(port).attr("disabled", "true");
                 $(button).val("STOP");
-            },
-        level:"shard"});
+            }
+    });
 }
 
 var fadeAll = function() {
@@ -115,10 +130,8 @@ var fadeAll = function() {
     });
 }
 
-var stats = function stats(data) {
-
-//    console.log(data);
-
+// Update cluster name and Nodes if there has been any change since last run.
+var updateClusterAndNodeNames = function(data){
     if (data) {
         if(data.cluster_name && clusterName != data.cluster_name) {
             clusterName = data.cluster_name;
@@ -149,17 +162,22 @@ var stats = function stats(data) {
                 //redraw nodes
                 var _nodes = [];
                 for (var n in nodes) _nodes.push(nodes[n]);
-                _nodes.sort();                
+                _nodes.sort(); // sort node names alphabetically
                 $(nodesSpan).empty();
-                if (selectedNodeName == undefined && _nodes.length > 0) selectedNodeName = _nodes[0];
+                if (selectedNodeName == undefined && _nodes.length > 0) {
+                    // make first available node selected
+                    selectedNodeName = _nodes[0];
+                    refreshNodeInfo(selectedNodeName);
+                }
                 $.each(_nodes, function(index, value) {
                     var node =  $(document.createElement("span")).attr("class","node").append(value);
                     if (value == selectedNodeName) { $(node).addClass("selectedNode"); }
                     $(node).click(
                         function(){
-                            // new node selected
+                            // new node selected by user
                             if (selectedNodeName != $(this).text()) {
                                 selectedNodeName = $(this).text();
+                                refreshNodeInfo(selectedNodeName);
                                 $.each(nodesSpan.children(),
                                     function(id, s){
                                       if (selectedNodeName == $(s).text()) $(s).addClass("selectedNode")
@@ -167,6 +185,7 @@ var stats = function stats(data) {
                                     }
                                 );
                                 cleanCharts(charts);
+                                setupInterval($("#interval option:selected").val());
                             }
                         }
                     );
@@ -175,7 +194,70 @@ var stats = function stats(data) {
             }
         }
     }
+}
 
+var getSelectedNodeId = function(name) {
+    for (node in nodes) {
+        if (nodes[node] == name) return node;
+    }
+    return undefined;
+}
+
+var refreshNodeInfo = function(nodeName) {
+    var id = getSelectedNodeId(nodeName);
+    if (id) {
+    es.adminClusterNodeInfo({
+        nodes : [id],
+        callback: function(data, xhr) {
+            if (data && data.nodes)
+            updateStaticNodeData(data.nodes[id]);
+        }
+    });
+    }
+}
+
+var updateStaticNodeData = function(data) {
+//    console.log(data);
+    if (data) {
+        if (data.os) {
+            if (data.os.cpu) {
+                var cpu = data.os.cpu;
+                osCpuTable.empty().append(
+                    newTR().append( newTD().append("Vendor:"), newTD().append(cpu.vendor) ),
+                    newTR().append( newTD().append("Model:"), newTD().append(cpu.model) ),
+                    newTR().append( newTD().append("MHz:"), newTD().append(cpu.mhz) ),
+                    newTR().append( newTD().append("Cores:"), newTD().append(cpu.total_cores) ),
+                    newTR().append( newTD().append("Cache:"), newTD().append(cpu.cache_size) )
+                );
+            }
+        }
+        if (data.transport) {
+            var t = data.transport;
+            transportTable.empty().append(
+                newTR().append( newTD().append("Bound address:"), newTD().append(t.bound_address) ),
+                newTR().append( newTD().append("Publish address:"), newTD().append(t.publish_address) )
+            );
+        }
+        networkTable.empty().append(
+            newTR().append( newTD().append("Http address:"), newTD().append(data.http_address) ),
+            newTR().append( newTD().append("Transport address:"), newTD().append(data.transport_address) )
+        );
+        if (data.jvm) {
+            var jvm = data.jvm;
+            jvmTable.empty().append(
+                newTR().append( newTD().append("Vendor:"), newTD().append(jvm.vm_vendor) ),
+                newTR().append( newTD().append("Name:"), newTD().append(jvm.vm_name) ),
+                newTR().append( newTD().append("Version:"), newTD().append(jvm.vm_version) ),
+                newTR().append( newTD().append("PID:"), newTD().append(jvm.pid) )
+            );
+        }
+    }
+}
+
+var stats = function(data) {
+
+//    console.log(data);
+    updateClusterAndNodeNames(data);
 
     var selectedNode = undefined;
     for (node in data.nodes) {
@@ -212,6 +294,7 @@ var stats = function stats(data) {
         // populate charts
 
         $(jvmUptime).empty().text(jvm.uptime).fadeTo("fast",1);
+        updateJvmGC(jvm.gc);
 
         chjvmthreads.series[0].addPoint([jvm.timestamp, (jvm.threads ? jvm.threads.count : null)], false, false);
         chjvmthreads.series[1].addPoint([jvm.timestamp, (jvm.threads ? jvm.threads.peak_count : null)], false, false);
@@ -239,6 +322,37 @@ var stats = function stats(data) {
         redrawCharts(charts);
 
     }
+}
+
+var updateJvmGC = function(gc) {
+    if (gc) {
+        var tr = newTR().append(
+            newTD().append("Total:"),
+            newTD().append(gc.collection_count),
+            newTD().append(gc.collection_time)
+        );
+        jvmGcTable.empty().append(tr).append(newTR("collspan",4)); // extra empty row (can be css-styled in the future)
+        for (collType in gc.collectors) {
+            tr = newTR().append(
+                newTD().append(collType,":"),
+                newTD().append(gc.collectors[collType].collection_count),
+                newTD().append(gc.collectors[collType].collection_time)
+            );
+            jvmGcTable.append(tr);
+        }
+    }
+}
+
+var newTR = function(attr, val) {
+    var tr = $(document.createElement("tr"));
+    if (attr && val) tr.attr(attr,val);
+    return tr;
+}
+
+var newTD = function(attr, val) {
+    var td = $(document.createElement("td"));
+    if (attr && val) td.attr(attr,val);
+    return td;
 }
 
 var cleanCharts = function(chartsArray) {
@@ -467,7 +581,7 @@ var buildChOsSwap = function(renderTo, title) {
         },
         plotOptions: {
             area: {
-                //            stacking: 'normal',
+                stacking: 'normal',
                 lineColor: '#666666',
                 lineWidth: 1,
                 marker: {
