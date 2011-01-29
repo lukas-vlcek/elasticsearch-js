@@ -48,10 +48,29 @@ function something_with_nodes_has_changed(addedNodes, removedNodes, newMaster) {
     }
 }
 
+function something_with_indices_has_changed(addedIndices, removedIndices) {
+
+    var currentTime = getFormatedDate(new Date());
+
+    if (addedIndices && addedIndices.length > 0) {
+        var d = document.createElement("div");
+        $(d).append("["+currentTime+"] New indices found: ").append(addedIndices.join(", "));
+        $(output).append(d);
+        console.log("Added indices: ", addedIndices);
+    }
+    if (removedIndices && removedIndices.length > 0) {
+        var d = document.createElement("div");
+        $(d).append("["+currentTime+"] Some indices were removed: ").append(removedIndices.join(", "));
+        $(output).append(d);
+        console.log("Removed indices: ", removedIndices);
+    }
+}
+
 function startCheckingNodes() {
 
 //    es.events.nodesAddedOrRemoved.internal.check(es);
     es.addEventListener("nodesAddedOrRemoved", something_with_nodes_has_changed);
+    es.addEventListener("indicesAddedOrRemoved", something_with_indices_has_changed);
 }
 
 function getFormatedDate(date) {
