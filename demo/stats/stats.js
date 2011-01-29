@@ -19,7 +19,7 @@ var // html elements
         clusterName, selectedNodeName,
     // charts
         chjvmthreads, chjvmmemheap, chjvmmemnonheap,
-        choscpu, chosswap = undefined;
+        choscpu, chosmem, chosswap = undefined;
 var connected = false;
 var firstPoint = true;
 var winsize = -1;
@@ -71,7 +71,6 @@ $(document).ready(function() {
             } else {
                 connect(hostVal, portVal);
             }
-            ;
         }
     });
 
@@ -96,7 +95,8 @@ $(document).ready(function() {
         chjvmmemnonheap = buildChJvmMem('jvm-mem-non-heap', 'Mem Non-Heap'),
         // os charts
         choscpu = buildChOsCpu("os-cpu"),
-        chosswap = buildChOsSwap("os-swap",'Swap'),
+        chosmem = buildChOsMem("os-mem"),
+        chosswap = buildChOsSwap("os-swap",'Swap')
     ]
 });
 
@@ -288,6 +288,10 @@ var stats = function(data) {
             choscpu.series[1].addPoint([os.timestamp - 1, null], false, false);
             choscpu.series[2].addPoint([os.timestamp - 1, null], false, false);
 
+            chosmem.series[0].addPoint([os.timestamp - 1, null], false, false);
+            chosmem.series[1].addPoint([os.timestamp - 1, null], false, false);
+            chosmem.series[2].addPoint([os.timestamp - 1, null], false, false);
+
             chosswap.series[0].addPoint([os.timestamp - 1, null], false, false);
             chosswap.series[1].addPoint([os.timestamp - 1, null], false, false);
         }
@@ -313,6 +317,10 @@ var stats = function(data) {
         choscpu.series[0].addPoint([os.timestamp, (os.cpu ? os.cpu.idle : null)], false, false);
         choscpu.series[1].addPoint([os.timestamp, (os.cpu ? os.cpu.sys : null)], false, false);
         choscpu.series[2].addPoint([os.timestamp, (os.cpu ? os.cpu.user : null)], false, false);
+
+        chosmem.series[0].addPoint([os.timestamp, (os.mem.actual_free_in_bytes && os.mem.actual_used_in_bytes ? os.mem.actual_free_in_bytes + os.mem.actual_used_in_bytes : null)], false, false);
+        chosmem.series[1].addPoint([os.timestamp, (os.mem.used_in_bytes ? os.mem.used_in_bytes : null)], false, false);
+        chosmem.series[2].addPoint([os.timestamp, (os.mem.actual_used_in_bytes ? os.mem.actual_used_in_bytes : null)], false, false);
 
         chosswap.series[0].addPoint([os.timestamp, (os.swap ? os.swap.free_in_bytes : null)], false, false);
         chosswap.series[1].addPoint([os.timestamp, (os.swap ? os.swap.used_in_bytes : null)], false, false);
@@ -604,6 +612,70 @@ var buildChOsSwap = function(renderTo, title) {
         series: [
             { name: 'Free' },
             { name: 'Used' }
+        ]
+    });
+}
+
+var buildChOsMem = function(renderTo) {
+    return new Highcharts.Chart({
+        chart: {
+            renderTo: renderTo,
+            defaultSeriesType: 'area'
+        },
+        title: {
+            text: "Mem"
+        },
+        credits: {
+            enabled: false
+        },
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150
+        },
+        yAxis: {
+            title: {
+                text: 'MegaBytes'
+            },
+            labels: {
+                formatter: function() {
+                    var res = this.value / 1024000;
+                    res = Math.round(res*Math.pow(10,2))/Math.pow(10,2);
+                    return res;
+                }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return '' +
+                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + ': ' +
+                        Highcharts.numberFormat(this.y / 1024000, 1) + 'mb';
+            }
+        },
+        plotOptions: {
+            area: {
+                //            stacking: 'normal',
+                lineColor: '#666666',
+                lineWidth: 1,
+                marker: {
+                    enabled: false,
+                    symbol: 'circle',
+                    radius: 2,
+                    states: {
+                        hover: {
+                            enabled: true
+                        }
+                    }
+                }
+                //            marker: {
+                //               lineWidth: 1,
+                //               lineColor: '#666666'
+                //            }
+            }
+        },
+        series: [
+            { name: 'Total Mem' },
+            { name: 'Used' },
+            { name: 'Actual Used' }
         ]
     });
 }
