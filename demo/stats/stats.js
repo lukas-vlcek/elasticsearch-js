@@ -86,6 +86,7 @@ $(document).ready(function() {
         shrinkCharts(charts);
         redrawCharts(charts);
     });
+    winsize = $("#winsize option:selected").val();
 
     // build all charts
     charts = [
