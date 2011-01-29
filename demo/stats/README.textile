@@ -10,13 +10,10 @@ This demo shows how to build simple system monitor, it is a one page with some l
  ** JVM threads
  ** JVM Heap and non-heap memory
  ** OS CPU(%)
+ ** OS Mem
  ** OS Swap
 
 User can switch between nodes in the cluster, new nodes are added and old nodes are removed automatically on the fly.
 
 On top of that it is possible to set refresh interval and time window for the charts (no limits, 1 minute, 5 minutes, ... etc)
-
-h3. TODO
-
- * implement chart for OS memory consumption
 
