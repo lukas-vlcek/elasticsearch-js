@@ -291,7 +291,7 @@ var stats = function(data) {
             chosmem.series[0].addPoint([os.timestamp - 1, null], false, false);
             chosmem.series[1].addPoint([os.timestamp - 1, null], false, false);
             chosmem.series[2].addPoint([os.timestamp - 1, null], false, false);
-
+                                                                                         
             chosswap.series[0].addPoint([os.timestamp - 1, null], false, false);
             chosswap.series[1].addPoint([os.timestamp - 1, null], false, false);
         }
@@ -325,7 +325,7 @@ var stats = function(data) {
         chosswap.series[0].addPoint([os.timestamp, (os.swap ? os.swap.free_in_bytes : null)], false, false);
         chosswap.series[1].addPoint([os.timestamp, (os.swap ? os.swap.used_in_bytes : null)], false, false);
 
-        shrinkCharts([choscpu, chosswap],os.timestamp - winsize);
+        shrinkCharts([choscpu, chosmem, chosswap],os.timestamp - winsize);
 
         // redraw all charts
         redrawCharts(charts);
