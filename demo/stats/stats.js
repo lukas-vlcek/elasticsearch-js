@@ -13,8 +13,9 @@
 // under the License.
 
 var // html elements
-        es, timer, form, button, host, port, interval, jvmUptime, osUptime, clusterNameSpan, nodesSpan,
+        es, timer, form, button, host, port, interval, indicesHeadline, jvmUptime, osUptime, clusterNameSpan, nodesSpan,
         jvmGcTable, osCpuTable, transportTable, networkTable, jvmTable,
+        fieldEvictions, fieldCacheSize, filterCacheSize, storeSize,
     // variables
         clusterName, selectedNodeName,
     // charts
@@ -34,6 +35,7 @@ $(document).ready(function() {
     host = $("#host");
     port = $("#port");
     interval = $("#interval");
+    indicesHeadline = $("#indices-headline");
     jvmUptime = $("#jvm-uptime");
     osUptime = $("#os-uptime");
     clusterNameSpan = $("#cluster-name");
@@ -43,6 +45,10 @@ $(document).ready(function() {
     transportTable = $("#transport-table");
     networkTable = $("#network-table");
     jvmTable = $("#jvm-table");
+    fieldEvictions = $("#field-cache-evictions");
+    fieldCacheSize = $("#field-cache-size");
+    filterCacheSize = $("#filter-cache-size");
+    storeSize = $("#store-size");
 
     // initialize variables
     clusterName = clusterNameSpan.text();
@@ -98,6 +104,17 @@ $(document).ready(function() {
         chosmem = buildChOsMem("os-mem"),
         chosswap = buildChOsSwap("os-swap",'Swap')
     ]
+
+    // allow toggle for detail sections
+    $(".section").each(function(idx, val){
+        $(val).bind('click',function(){
+            // navigate to "section-detail"
+            $($(this).parent().parent().parent().children()[1]).toggle("fast");
+        });
+    });
+
+    fadeAll();
+
 });
 
 var setupInterval = function(delay) {
@@ -267,6 +284,7 @@ var stats = function(data) {
     if (selectedNode) {
 //        console.log(selectedNode);
 
+        var indices = selectedNode.indices;
         var jvm = selectedNode.jvm;
         var os = selectedNode.os;
 
@@ -296,11 +314,16 @@ var stats = function(data) {
             chosswap.series[1].addPoint([os.timestamp - 1, null], false, false);
         }
 
-        // populate charts
-
+        // update section headers
+        $(indicesHeadline).empty().fadeTo("fast",1);
         $(jvmUptime).empty().text(jvm.uptime).fadeTo("fast",1);
+        $(osUptime).empty().text(os.uptime).fadeTo("fast",1);
+
+        // update stats that are not charts
+        updateIndices(indices);
         updateJvmGC(jvm.gc);
 
+        // populate charts
         chjvmthreads.series[0].addPoint([jvm.timestamp, (jvm.threads ? jvm.threads.count : null)], false, false);
         chjvmthreads.series[1].addPoint([jvm.timestamp, (jvm.threads ? jvm.threads.peak_count : null)], false, false);
 
@@ -311,8 +334,6 @@ var stats = function(data) {
         chjvmmemnonheap.series[1].addPoint([jvm.timestamp, (jvm.mem ? jvm.mem.non_heap_used_in_bytes : null)], false, false);
 
         shrinkCharts([chjvmthreads, chjvmmemheap, chjvmmemnonheap], jvm.timestamp - winsize);
-
-        $(osUptime).empty().text(os.uptime).fadeTo("fast",1);
 
         choscpu.series[0].addPoint([os.timestamp, (os.cpu ? os.cpu.idle : null)], false, false);
         choscpu.series[1].addPoint([os.timestamp, (os.cpu ? os.cpu.sys : null)], false, false);
@@ -331,6 +352,14 @@ var stats = function(data) {
         redrawCharts(charts);
 
     }
+}
+
+var updateIndices = function(indices) {
+//    console.log(indices);
+    fieldEvictions.text(indices.field_cache_evictions);
+    fieldCacheSize.text(indices.field_cache_size);
+    filterCacheSize.text(indices.filter_cache_size);
+    storeSize.text(indices.store_size + " (" + indices.store_size_in_bytes + ")");
 }
 
 var updateJvmGC = function(gc) {

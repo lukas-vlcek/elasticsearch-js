@@ -26,7 +26,11 @@
     <script type="text/javascript" src="stats.js"></script>
     <style type="text/css">
         body { font-family: sans-serif; color: #304560; }
-        .section { font-weight: bold; }
+        .section {
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: underline;
+        }
         .disconnected { font-style: italic; }
         .clusterName {
             font-size: 80%;
@@ -98,12 +102,29 @@
             <td>Nodes:<span id="nodes"></span></td>
         </tr>
     </table>
+
     <div class="separator"></div>
+
+    <table>
+        <tr>
+            <td colspan="4"><span class="section">Indices:</span> <span id="indices-headline" class="fading"></span></td>
+        </tr>
+        <tr class="section-detail">
+            <td>Field&nbsp;cache&nbsp;evictions:&nbsp;<span id="field-cache-evictions"></span></td>
+            <td>,&nbsp;Field&nbsp;cache&nbsp;size:&nbsp;<span id="field-cache-size"></span></td>
+            <td>,&nbsp;Filter&nbsp;cache&nbsp;size:&nbsp;<span id="filter-cache-size"></span></td>
+            <td>,&nbsp;Store&nbsp;size:&nbsp;<span id="store-size"></span></td>
+        </tr>
+
+    </table>
+
+    <div class="separator"></div>
+
     <table>
         <tr>
             <td colspan="4"><span class="section">JVM uptime:</span> <span id="jvm-uptime" class="fading"></span></td>
         </tr>
-        <tr>
+        <tr class="section-detail">
             <td style="vertical-align: text-top;">
                 <div style="width: 350px">
                     <table>
@@ -135,7 +156,7 @@
         <tr>
             <td colspan="4"><span class="section">OS uptime:</span> <span id="os-uptime" class="fading"></span></td>
         </tr>
-        <tr>
+        <tr class="section-detail">
             <td style="vertical-align: text-top;">
                 <div style="width: 350px">
                     <table>
