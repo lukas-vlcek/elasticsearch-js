@@ -119,7 +119,7 @@ $(document).ready(function() {
 
 var setupInterval = function(delay) {
     clearInterval(timer);
-    var _function = function(){es.adminClusterNodeStats({callback:function(data, xhr){stats(data)}})};
+    var _function = function(){es.adminClusterNodeStats({callback:function(data, xhr){console.log(data);stats(data)}})};
     _function(); // execute the _function right now before the first delay interval elapses
     timer = setInterval(_function, delay);
 }
@@ -356,10 +356,19 @@ var stats = function(data) {
 
 var updateIndices = function(indices) {
 //    console.log(indices);
-    fieldEvictions.text(indices.field_cache_evictions);
-    fieldCacheSize.text(indices.field_cache_size);
-    filterCacheSize.text(indices.filter_cache_size);
-    storeSize.text(indices.store_size + " (" + indices.store_size_in_bytes + ")");
+    // response format changed in 0.16
+    // see https://github.com/elasticsearch/elasticsearch/issues/746
+    if ( indices.cache ) {
+        fieldEvictions.text(indices.cache.field_evictions);
+        fieldCacheSize.text(indices.cache.field_size);
+        filterCacheSize.text(indices.cache.filter_size);
+        storeSize.text(indices.size + " (" + indices.size_in_bytes + ")");
+    } else {
+        fieldEvictions.text(indices.field_cache_evictions);
+        fieldCacheSize.text(indices.field_cache_size);
+        filterCacheSize.text(indices.filter_cache_size);
+        storeSize.text(indices.store_size + " (" + indices.store_size_in_bytes + ")");
+    }
 }
 
 var updateJvmGC = function(gc) {
