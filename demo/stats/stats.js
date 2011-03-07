@@ -362,7 +362,9 @@ var updateIndices = function(indices) {
         fieldEvictions.text(indices.cache.field_evictions);
         fieldCacheSize.text(indices.cache.field_size);
         filterCacheSize.text(indices.cache.filter_size);
-        storeSize.text(indices.size + " (" + indices.size_in_bytes + ")");
+        storeSize.text(indices.size + " (" + indices.size_in_bytes + "), ")
+                .append("Documents: ",indices.docs.num_docs,", ")
+                .append("Merges current/total: ",indices.merges.current, "/", indices.merges.total, " (took ", indices.merges.total_time,")");
     } else {
         fieldEvictions.text(indices.field_cache_evictions);
         fieldCacheSize.text(indices.field_cache_size);
