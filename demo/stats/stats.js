@@ -119,7 +119,7 @@ $(document).ready(function() {
 
 var setupInterval = function(delay) {
     clearInterval(timer);
-    var _function = function(){es.adminClusterNodeStats({callback:function(data, xhr){console.log(data);stats(data)}})};
+    var _function = function(){es.adminClusterNodeStats({callback:function(data, xhr){stats(data)}})};
     _function(); // execute the _function right now before the first delay interval elapses
     timer = setInterval(_function, delay);
 }
@@ -418,10 +418,7 @@ var shrinkCharts = function(chartsArray, threshold) {
         for (var i = 0; i < chartsArray.length; i++) {
             for (var s = 0; s < chartsArray[i].series.length; s++) {
                 var series = chartsArray[i].series[s];
-                for (var d = 0; d < series.data.length; d++) {
-                    var data = series.data[d];
-                    while (data.category && data.category < threshold) data.remove(false);
-                }
+                while (series.data[0].category && series.data[0].category < threshold) series.data[0].remove(false);
             }
         }
     }
