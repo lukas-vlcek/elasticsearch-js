@@ -34,7 +34,7 @@ ElasticSearch.prototype.method = {
     get    : "GET",
     post   : "POST",
     put    : "PUT",
-    delete : "DELETE"
+    del    : "DELETE"
 }
 
 /* Cluster Admin API */
@@ -192,7 +192,7 @@ ElasticSearch.prototype.adminIndicesDelete = function(settings) {
     if (!settings.index) { throw("Index name must be provided.") }
     var path = settings.index+"/";
     with(this) {
-        execute(method.delete, path, settings);
+        execute(method.del, path, settings);
     }
 }
 
@@ -240,7 +240,7 @@ ElasticSearch.prototype.adminIndicesMappingDelete = function(settings) {
     if (!settings.type) { throw("An index type must be provided."); }
     if (!settings.index) { throw("And index name must be provided."); }
     with(this) {
-        execute(method.delete, [settings.index,settings.type,"_mapping"].join("/"), settings);
+        execute(method.del, [settings.index,settings.type,"_mapping"].join("/"), settings);
     }
 }
 
@@ -406,7 +406,7 @@ ElasticSearch.prototype.adminIndicesTemplateDelete = function(settings) {
     if (!settings.template_id) { throw("Index template_id must be provided."); }
     var path = "_template/"+settings.template_id;
     with(this) {
-        execute(method.delete, path, settings);
+        execute(method.del, path, settings);
     }
 }
 
@@ -518,7 +518,7 @@ ElasticSearch.prototype.get = function(settings) {
         settings.routing
         settings.callback   function to be called once the ajax is finished
  */
-ElasticSearch.prototype.delete = function(settings) {
+ElasticSearch.prototype.del = function(settings) {
     var settings = this.ensure(settings);
     if (!settings.index || !settings.type || !settings.id) {
         throw("Full path information /{index}/{type}/{id} must be provided.");
@@ -531,7 +531,7 @@ ElasticSearch.prototype.delete = function(settings) {
     if (settings.routing) params.push("routing="+settings.routing);
     if (params.length > 0) path += "?" + params.join("&");
     with(this) {
-        execute(method.delete, path, settings);
+        execute(method.del, path, settings);
     }
 }
 
@@ -556,7 +556,7 @@ ElasticSearch.prototype.deleteByQuery = function(settings) {
     if (settings.routing) params.push("routing="+settings.routing);
     if (params.length > 0) path += "?" + params.join("&");
     with(this) {
-        execute(method.delete, path, settings);
+        execute(method.del, path, settings);
     }
 }
 

@@ -23,7 +23,7 @@ methods.push(["log","Logging message"]);
 methods.push(["search",{indices:["_all"], types:["mail"], queryDSL:{ size: 1, from: 0, query: { match_all: {}} }}]);
 methods.push(["count",{queryDSL:{ match_all: {}} }]);
 methods.push(["get",{index:"test",type:"tweet",id:1}]);
-methods.push(["delete",{index:"test",type:"tweet",id:1,replication:"sync"}]);
+methods.push(["del",{index:"test",type:"tweet",id:1,replication:"sync"}]);
 methods.push(["adminClusterState",{}]);
 methods.push(["adminClusterHealth",{indices:["test","foo"], timeout:"30s"}]);
 methods.push(["adminClusterNodeInfo",{nodes:["_master"]}]);
