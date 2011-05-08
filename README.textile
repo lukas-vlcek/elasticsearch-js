@@ -1,3 +1,7 @@
+h3. Note:
+
+I did not have a chance to work on JavaScript client for ES for some time now, thus this code can be outdated a bit. Hopefully, I will get back to it soon (still contributions are welcome, although I have a plan to rework current code base significantly).
+
 h1. ElasticSearch Javascript Client
 
 Implementation of Javascript client for Elastic Search supporting jQuery (this is still work in progress).
